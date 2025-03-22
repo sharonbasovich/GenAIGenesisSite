@@ -1,35 +1,82 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, TextInput, Text, View, Pressable,ActivityIndicator, TouchableOpacity } from "react-native";
-import { useState } from 'react';
-import { useRouter, Stack } from 'expo-router' 
+import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity } from "react-native";
+import { useState, useEffect, useRef } from 'react';
+import { Camera, CameraType, CameraView } from 'expo-camera'
+import * as MediaLibrary from 'expo-media-library'
+import { useRouter, Stack, usePathname } from 'expo-router' 
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 // import Nav from '../../components/Nav'
 
 const Main = () => {
+    
+    const [hasCameraPermissions,setHasCameraPermissions] = useState(false)
+    const [image,setImage] = useState(null)
+    const [type, setType] = useState('back');
+    const [flash, setFlash] = useState('off');
+    const cameraRef = useRef(null)
+    const router = useRouter()
 
-    const photo = () => {
+    useEffect(() => {
+        (async ()=> {
+            await MediaLibrary.requestPermissionsAsync()
+            const cameraStatus = await Camera.requestCameraPermissionsAsync();
+            setHasCameraPermissions(cameraStatus.status === 'granted')
+        })();
+    }, [])
+
+    const takePhoto = async () => {
         console.log('pressed photo button')
+        if(cameraRef.current){
+            try{
+                const data = await cameraRef.current?.takePictureAsync()
+                console.log(data)
+                setImage(data.uri)
+
+                //move to the validate photo page
+                router.push({ pathname: `/validate_photo`, params: { image: image } });
+            }catch(e){
+                console.log(`Exception: ${e}`)
+            }
+        }
     }
+    const flip = () => {
+        setType(type == "front"? "back": "front" );
+      };
+
+    if(hasCameraPermissions === false){
+        return(
+            <View style={styles.container}>
+            <Text>No access to camera</Text>
+
+            </View>
+        )
+    }
+
     return(
         <View style={styles.container}>
             <StatusBar style="auto" />
-
             <View style={styles.header}>
                 {/* <Stack.Screen options={{ header: () => <Nav /> }} /> */}
             </View>
             
 
             <View style={styles.camera_area}>
-                <Text>
+                <CameraView
+                    style={styles.camera}
+                    type={type}
+                    facing={type}
+                    ref={cameraRef}>
 
-                    Camera
-                </Text>
+                                <TouchableOpacity activeOpacity={0.8} style={styles.flip_btn} onPress={flip}>
+                                    <MaterialCommunityIcons name="camera-flip" size={40} color="#000"/>
+                                </TouchableOpacity>
+                    
+                </CameraView>
             </View>
             
-
-
-                <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={photo}>
-                    <Text style={styles.btn_text}>TAKE PHOTO</Text>
-                </TouchableOpacity>
+            <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={takePhoto}>
+                <Text style={styles.btn_text}>TAKE PHOTO</Text>
+            </TouchableOpacity>
             
         </View>
     )
@@ -65,8 +112,13 @@ const styles = StyleSheet.create({
         backgroundColor: '#D9D9D9',
         height:'70%',
         marginBottom:20,
-        alignItems:'center',
-        justifyContent:'center'
+        // alignItems:'center',
+        // justifyContent:'center'
+    },
+    camera: {
+        width:'100%',
+        height:'100%',
+        flex:1
     },
     photo_btn: {
         backgroundColor:'#54F2D6',
@@ -80,6 +132,8 @@ const styles = StyleSheet.create({
     btn_text: {
         color: '#000000',
         fontSize: 22,
-        fontWeight:700
+        fontWeight:800
+    },flip_btn: {
+        paddingHorizontal:8
     }
 })

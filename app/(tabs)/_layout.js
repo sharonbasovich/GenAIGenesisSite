@@ -11,9 +11,9 @@ const TabsLayout = () => {
     return(
         <Tabs screenOptions={{headerShown: false}}>
             <Tabs.Screen name="index"  />
-            <Tabs.Screen name="validatephoto" />
+            <Tabs.Screen name="validate_photo" />
             <Tabs.Screen name="home" />
-
+            <Tabs.Screen name="select_feature" />
         </Tabs>
     )
 }

@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     },
     btn_text: {
         fontSize:28,
-        fontWeight:700
+        fontWeight:800
     }
     
 })
