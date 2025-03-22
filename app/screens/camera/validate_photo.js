@@ -1,5 +1,5 @@
 import { setStatusBarBackgroundColor, StatusBar } from "expo-status-bar";
-import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity } from "react-native";
+import { StyleSheet, ActivityIndicator, Text, View, Pressable, TouchableOpacity, Platform } from "react-native";
 import { Image } from 'expo-image'
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
@@ -8,11 +8,15 @@ import Nav from '../../../components/Nav'
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
+import ExpoCheckbox from "expo-checkbox/build/ExpoCheckbox";
 
 const PhotoValidate = () => {
     const [uri, setUri] = useState(null)
     const router = useRouter()
     const params = useLocalSearchParams();
+    const [loading, setLoading] = useState(false);
+    const [imagePath, setImagePath] = useState(null)
+    const API_URL = "http://166.104.146.34:5000"; // Replace X with your actual IP
 
     useEffect(() => {
         if (params.image) {
@@ -24,6 +28,7 @@ const PhotoValidate = () => {
 
     const retake =() => {
         setUri(null)
+        setImagePath(null)
         router.push('/screens/camera')
     }
 
@@ -48,50 +53,86 @@ const PhotoValidate = () => {
 
     const upload = async (uri) => {
         console.log('send image to server')
-        //check if we already have uri stored
-        const data = await getData('uri_list')
-        if (data && data.url_list){
-            console.log(`existing data ${data}`)
-            data.uri_list.push({
-                "uri": uri,
-                "id": uri.split('/').slice(-1)[0]
-            });
-            console.log(`We now have ${data.length} uris`)
-            await storeData({'uri_list':data})
-        } else {
-            console.log(`Adding new data: ${uri}`)
-            await storeData({
-                'uri_list': [{
+        //store local uris
+        try{
+            const data = await getData('uri_list')
+            if (data && data.url_list){
+                console.log(`existing data ${data}`)
+                data.uri_list.push({
                     "uri": uri,
                     "id": uri.split('/').slice(-1)[0]
-                }]
-            });
+                });
+                console.log(`We now have ${data.length} uris`)
+                await storeData({'uri_list':data})
+    
+            } else {
+                console.log(`Adding new data: ${uri}`)
+                await storeData({
+                    'uri_list': [{
+                        "uri": uri,
+                        "id": uri.split('/').slice(-1)[0]
+                    }]
+                });
+            }
+            //send URI to the server
+            const formData = new FormData()
+            formData.append('image', {
+                uri: uri,
+                name: uri.split('/').pop(),
+                type: 'image/jpeg'
+            })
+
+            const response = await fetch("http://166.104.146.34:5000/upload", {
+                method: 'POST',
+                body: formData,
+                // Important: Do not set the Content-Type header explicitly
+                // Let the browser set it with the correct boundary
+              });
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.log(`Server error: ${errorText}`)
+            }
+
+            const result = await response.json()
+            if (result.image_path) {
+                setImagePath(result.image_path);
+                console.log('set the image path')
+            }
+        } catch(e){
+            console.log(`Exception: ${e}`)
+        } finally {
+            setLoading(false)
         }
-
-        // let formData = new FormData();
-        // formData.append('image', {
-        //     uri: uri,
-        //     name: 'test_image.jpg',
-        //     type: 'jpeg'
-        // });
-        // try {
-        //     let response = await fetch("http://127.0.0.1:5000/upload", {
-        //         method: "POST",
-        //         body: formData,
-        //         headers: { 'Content-Type': 'multipart/form-data' }})
-
-        //         let result = response.json()
-        //         console.log(`status: ${result["status"]}`)
-        // } catch(e){
-
-        // }
     }
-    // console.log(`URIIIIII: ${uri}`)
+
+    const handleSummarize = async () => {
+        if (!imagePath) return;
+        
+        setLoading(true);
+        try {
+          let response = await fetch(`${API_URL}/summarize`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image_path: imagePath }),
+          });
+      
+          let result = await response.json();
+          console.log(result);  // Print the response to check the format
+          setSummary(result.summary);
+        } catch (error) {
+          console.error("Error fetching summary:", error);
+          setSummary("Failed to load summary.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
     const content =  (
         <View style={styles.camera_area}>
+        
             {params.image ? (
                 <Image 
-                    source={{uri: params.image}}
+                    source={source(imagePath)}
                     style={{ flex: 1, width: '100%', height: '100%' }}
                     onError={(error) => console.log('Image loading error:', error)}
                 />

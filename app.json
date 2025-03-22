@@ -20,14 +20,23 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.scientistbodybuilder.GenAIGenesisSite"
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler":"metro"
+      "bundler": "metro"
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "25532cc4-ef2a-4457-a1ad-4659518f3a72"
+      }
+    }
   }
 }
