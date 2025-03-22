@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Nav from "../../components/Nav";
 
 const Home = () => {
@@ -18,37 +19,46 @@ const Home = () => {
   const MENUS = [
     {
       id: "1",
-      title: "Menu 1",
+      uri: "Menu 1",
     },
     {
       id: "2",
-      title: "Menu 2",
+      uri: "Menu 2",
     },
     {
       id: "3",
-      title: "Menu 3",
+      uri: "Menu 3",
     },
     {
       id: "4",
-      title: "Menu 4",
+      uri: "Menu 4",
     },
     {
       id: "5",
-      title: "Menu 5",
+      uri: "Menu 5",
     },
     {
       id: "6",
-      title: "Menu 6",
+      uri: "Menu 6",
     },
     {
       id: "7",
-      title: "Menu 7",
+      uri: "Menu 7",
     },
     {
       id: "8",
-      title: "Menu 8",
+      uri: "Menu 8",
     },
   ];
+  
+  const getData = async (key) => {
+    try {
+      const jsonValue = await AsyncStorage.getItem(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch (e) {
+      // error reading value
+    }
+  };
 
   const formatData = (data, numColumns) => {
     const num_full_rows = Math.floor(data.length / numColumns);
@@ -87,7 +97,7 @@ const Home = () => {
           console.log(item.id);
           return (
             <View style={styles.card} key={item.id}>
-              <Text style={styles.menu_title}>{item.title}</Text>
+              <Text style={styles.menu_title}>{item.uri}</Text>
             </View>
           );
         }}

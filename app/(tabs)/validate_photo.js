@@ -1,7 +1,9 @@
 import { setStatusBarBackgroundColor, StatusBar } from "expo-status-bar";
-import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity } from "react-native";
+import { Image } from 'expo-image'
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Nav from '../../components/Nav'
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
@@ -17,36 +19,78 @@ const PhotoValidate = () => {
             console.log(`URI: ${params.image}`)
             setUri(params.image);
         }
-    }, [params]);
+    }, []);
+
     const retake =() => {
+        setUri(null)
         router.push('/')
     }
-    const upload = async () => {
-        console.log('send image to server')
-        let formData = new FormData();
-        formData.append('image', {
-            uri: uri,
-            name: 'test_image.jpg',
-            type: 'jpeg'
-        });
+
+    const storeData = async (value) => {
         try {
-            let response = await fetch("http://127.0.0.1:5000/upload", {
-                method: "POST",
-                body: formData,
-                headers: { 'Content-Type': 'multipart/form-data' }})
-
-                let result = response.json()
-                console.log(`status: ${result["status"]}`)
-        } catch(e){
-
+          const jsonValue = JSON.stringify(value);
+          await AsyncStorage.setItem('uri_list', jsonValue);
+        } catch (e) {
+          console.log(`Error storing data: ${e}`)
         }
+      };
+    
+
+    const getData = async (key) => {
+        try {
+          const jsonValue = await AsyncStorage.getItem(key);
+          return jsonValue != null ? JSON.parse(jsonValue) : null;
+        } catch (e) {
+          console.log(`Error getting data: ${e}`)
+        }
+      };
+
+    const upload = async (uri) => {
+        console.log('send image to server')
+        //check if we already have uri stored
+        const data = await getData('uri_list')
+        if (data && data.url_list){
+            console.log(`existing data ${data}`)
+            data.uri_list.push({
+                "uri": uri,
+                "id": uri.split('/').slice(-1)[0]
+            });
+            console.log(`We now have ${data.length} uris`)
+            await storeData({'uri_list':data})
+        } else {
+            console.log(`Adding new data: ${uri}`)
+            await storeData({
+                'uri_list': [{
+                    "uri": uri,
+                    "id": uri.split('/').slice(-1)[0]
+                }]
+            });
+        }
+
+        // let formData = new FormData();
+        // formData.append('image', {
+        //     uri: uri,
+        //     name: 'test_image.jpg',
+        //     type: 'jpeg'
+        // });
+        // try {
+        //     let response = await fetch("http://127.0.0.1:5000/upload", {
+        //         method: "POST",
+        //         body: formData,
+        //         headers: { 'Content-Type': 'multipart/form-data' }})
+
+        //         let result = response.json()
+        //         console.log(`status: ${result["status"]}`)
+        // } catch(e){
+
+        // }
     }
-    console.log(`URIIIIII: ${uri}`)
+    // console.log(`URIIIIII: ${uri}`)
     const content =  (
         <View style={styles.camera_area}>
             {uri ? (
                 <Image 
-                    source={{uri: uri}}
+                    source={uri}
                     style={{ flex: 1, width: '100%', height: '100%' }}
                     onError={(error) => console.log('Image loading error:', error)}
                 />
@@ -76,7 +120,7 @@ const PhotoValidate = () => {
             
 
             <View style={styles.btn_container}>
-                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={upload}>
+                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={() => upload(uri)}>
                     <FontAwesome name="check" size={35} color="#000"/>
                     </TouchableOpacity>
 
