@@ -2,7 +2,8 @@ import { setStatusBarBackgroundColor, StatusBar } from "expo-status-bar";
 import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity, Image } from "react-native";
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
-// import Nav from '../../components/Nav'
+import Nav from '../../components/Nav'
+import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 
@@ -45,8 +46,9 @@ const PhotoValidate = () => {
         <View style={styles.camera_area}>
             {uri ? (
                 <Image 
-                    source={{uri: uri}} // Ensure correct object format
+                    source={{uri: uri}}
                     style={{ flex: 1, width: '100%', height: '100%' }}
+                    onError={(error) => console.log('Image loading error:', error)}
                 />
             ) : (
                 <Text>No Photo Taken</Text>
@@ -55,11 +57,12 @@ const PhotoValidate = () => {
     )
 
     return(
+        <SafeAreaView style={{flex:1}}>
         <View style={styles.container}>
             <StatusBar style="auto" />
 
             <View style={styles.header}>
-                {/* <Stack.Screen options={{ header: () => <Nav /> }} /> */}
+                <Nav></Nav>
             </View>
             
 
@@ -84,6 +87,7 @@ const PhotoValidate = () => {
 
             </View>  
         </View>
+        </SafeAreaView>
     )
 
 }
@@ -110,7 +114,7 @@ const styles = StyleSheet.create({
         height:'10%',
         maxHeight:60,
         minHeight:40,
-        backgroundColor:'#D9D9D9'
+        backgroundColor:'transparent'
     },
     camera_area: {
         width:'100%',
