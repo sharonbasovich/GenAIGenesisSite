@@ -21,8 +21,8 @@ const Nav = () => {
   };
 
   const settings = async () => {
-    console.log("settings");
-    // router.push("/settings");
+    // console.log("settings");
+    router.push("/settings");
   };
 
   const camera = async () => {
