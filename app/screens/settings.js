@@ -18,6 +18,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Checkbox from "expo-checkbox";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const data = [
   { label: "Afrikaans", value: "Afrikaans" },
@@ -121,34 +122,28 @@ const data = [
   { label: "Zulu", value: "Zulu" },
 ];
 
-const PhotoValidate = () => {
+const Settings = () => {
   const [uri, setUri] = useState(null);
   const router = useRouter();
   const params = useLocalSearchParams();
 
-  useEffect(() => {
-    if (params.image) {
-      console.log(`URI: ${params.image}`);
-      setUri(params.image);
+  const getData = async (key) => {
+    try {
+      const jsonValue = await AsyncStorage.getItem(key);
+      return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch (e) {
+      // error reading value
     }
-  }, []);
-  const retake = () => {
-    router.push("/");
   };
 
-  console.log(`URIIIIII: ${uri}`);
-  const content = (
-    <View style={styles.camera_area}>
-      {uri ? (
-        <Image
-          source={{ uri: uri }} // Ensure correct object format
-          style={{ flex: 1, width: "100%", height: "100%" }}
-        />
-      ) : (
-        <Text>No Photo Taken</Text>
-      )}
-    </View>
-  );
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem('uri_list', jsonValue);
+    } catch (e) {
+      console.log(`Error storing data: ${e}`)
+    }
+  };
 
   //dropdown code
   const [value, setValue] = useState(null);
@@ -175,6 +170,21 @@ const PhotoValidate = () => {
   const [text1, onChangeText1] = React.useState("");
   const [text2, onChangeText2] = React.useState("");
   const [text3, onChangeText3] = React.useState("");
+
+  const confirmSettings = async () => {
+      const settings = {"settings": {
+        "language":value? value: "None",
+        "allergies": text1? text1: "None",
+        "food_preferences":text2? text2: "None",
+        "culture":text3? text3: "None",
+        "prioritize_value_per_dollar": isChecked1? "Yes": "No",
+        "prioritize_sustainable_ingredients":isChecked2? "Yes": "No"
+
+      }}
+
+      await storeData(settings)
+      console.log('settings confirmed')
+  }
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -234,7 +244,7 @@ const PhotoValidate = () => {
               multiline={true}
               textAlignVertical="top"
             />
-            <Text style={styles.title2}>Allergies</Text>
+            <Text style={styles.title2}>Describe Your Culture</Text>
             <TextInput
               style={styles.input}
               onChangeText={onChangeText3}
@@ -244,7 +254,10 @@ const PhotoValidate = () => {
               textAlignVertical="top"
             />
             <Text style={styles.title3}>Priorities</Text>
-            <View style={styles.section}>
+          
+            <View style={styles.bottom_container}>
+              <View style={styles.checkboxbox}>
+              <View style={styles.section}>
               <Checkbox
                 style={{ marginRight: 5 }}
                 value={isChecked1}
@@ -260,6 +273,15 @@ const PhotoValidate = () => {
               />
               <Text>Value per dollar</Text>
             </View>
+              </View>
+              <TouchableOpacity style={styles.btn} activeOpacity={0.8} onPress={confirmSettings}
+              >
+                <Text style={{fontSize:15,color:"#000",fontWeight:800}}>
+                  CONFIRM
+                </Text>
+              </TouchableOpacity>
+
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -267,7 +289,7 @@ const PhotoValidate = () => {
   );
 };
 
-export default PhotoValidate;
+export default Settings;
 
 const styles = StyleSheet.create({
   section: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
@@ -327,22 +349,20 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
   },
-  photo_btn: {
+  btn: {
     backgroundColor: "#54F2D6",
-    borderRadius: "50%",
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 5,
-    width: 90,
-    height: 90,
+    paddingVertical: 10,
+    paddingHorizontal:15,
     alignItems: "center",
     justifyContent: "center",
   },
-  btn_container: {
+  bottom_container: {
     flexDirection: "row",
-    marginBottom: 30,
-    width: "50%",
     justifyContent: "space-between",
     alignItems: "center",
+    width:'100%',
   },
   dropdown: {
     marginTop: 16,

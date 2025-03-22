@@ -18,7 +18,7 @@ const PhotoValidate = () => {
         if (params.image) {
             console.log(`URI: ${params.image}`)
             // setUri(params.image);
-            setUri(params.image.split('/').slice(-1)[0])
+            setUri(params.image)
         }
     }, []);
 
@@ -90,12 +90,12 @@ const PhotoValidate = () => {
     const content =  (
         <View style={styles.camera_area}>
             {params.image ? (
-                // <Image 
-                //     source={uri}
-                //     style={{ flex: 1, width: '100%', height: '100%' }}
-                //     onError={(error) => console.log('Image loading error:', error)}
-                // />
-                <Text>{params.image.split('/').slice(-1)[0]}</Text>
+                <Image 
+                    source={{uri: params.image}}
+                    style={{ flex: 1, width: '100%', height: '100%' }}
+                    onError={(error) => console.log('Image loading error:', error)}
+                />
+                // <Text>{params.image.split('/').slice(-1)[0]}</Text>
             ) : (
                 <Text>No Photo Taken</Text>
             )}

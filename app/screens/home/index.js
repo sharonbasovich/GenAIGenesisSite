@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Pressable,
+  Image
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
@@ -94,8 +95,8 @@ const Home = () => {
 
       <FlatList
         style={styles.menu_area}
-        data={formatData(MENUS, col_num)}
-        // data={formatData(() => getData('uri_list'), col_num)}
+        // data={formatData(MENUS, col_num)}
+        data={formatData(() => getData('uri_list'), col_num)}
         columnWrapperStyle={styles.row} // Centering and spacing between columns
         contentContainerStyle={styles.list} // Centering list in screen
         renderItem={({ item }) => {
@@ -107,7 +108,10 @@ const Home = () => {
             <View style={styles.card} key={item.id}>
                 <Pressable onPress={open_selection} style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
                     <View>
-                        <Text style={styles.menu_title}>{item.uri}</Text>
+                        {/* <Text style={styles.menu_title}>{item.uri}</Text> */}
+                        <Image 
+                          source={{uri: item.uri}}
+                          style={{ flex: 1, width: '100%', height: '100%' }}/>
                     </View>
               </Pressable>
             </View>
