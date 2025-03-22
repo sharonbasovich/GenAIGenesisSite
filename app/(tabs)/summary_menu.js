@@ -11,6 +11,7 @@ import {
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Nav from "../../components/Nav";
 
 const SummaryMenu = () => {
@@ -18,6 +19,8 @@ const SummaryMenu = () => {
     console.log("pressed text to speech");
   };
   return (
+    <SafeAreaView style={{flex:1}}>
+
     <View style={styles.container}>
       <StatusBar style="auto" />
 
@@ -43,6 +46,8 @@ const SummaryMenu = () => {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
+
   );
 };
 

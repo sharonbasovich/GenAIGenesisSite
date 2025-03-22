@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Nav from "../../components/Nav";
 
 const SelectFeature = () => {
@@ -23,6 +24,7 @@ const SelectFeature = () => {
     console.log("pressed accesible button");
   };
   return (
+    <SafeAreaView style={{flex:1}}>
     <View style={styles.container}>
       <StatusBar style="auto" />
 
@@ -64,6 +66,7 @@ const SelectFeature = () => {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 
@@ -105,8 +108,9 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "25%",
     // borderWidth:1,
-    marginBottom: 20,
-    minHeight: "fit-content",
+    marginBottom: 40,
+    maxHeight: 200,
+    gap:20
   },
   photo_btn: {
     backgroundColor: "#54F2D6",
@@ -114,7 +118,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 12,
     paddingVertical: 10,
-    marginBottom: 60,
     borderWidth: 1,
     width: "60%",
   },

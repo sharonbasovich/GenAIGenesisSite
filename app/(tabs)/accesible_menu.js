@@ -9,15 +9,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import Nav from "../../components/Nav";
 
-const SuggestionsMenu = () => {
+const AccesibleMenu = () => {
   const textToSpeech = () => {
     console.log("pressed text to speech");
   };
   return (
+    <SafeAreaView style={{flex:1}}>
     <View style={styles.container}>
       <StatusBar style="auto" />
 
@@ -25,7 +27,7 @@ const SuggestionsMenu = () => {
         <Nav />
       </View>
 
-      <Text style={styles.title}>SUGGESTIONS MENU</Text>
+      <Text style={styles.title}>ACCESIBLE MENU</Text>
       <View style={styles.menu}></View>
 
       <View style={styles.button_container}>
@@ -43,15 +45,16 @@ const SuggestionsMenu = () => {
         </TouchableOpacity>
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 
-export default SuggestionsMenu;
+export default AccesibleMenu;
 
 const styles = StyleSheet.create({
   title: {
     color: "#000",
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 800,
     marginBottom: 20,
   },

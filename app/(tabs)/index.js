@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from "react";
 import { Camera, CameraType, CameraView } from "expo-camera";
 import * as MediaLibrary from "expo-media-library";
 import { useRouter, Stack, usePathname } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Nav from "../../components/Nav";
 
@@ -38,16 +39,20 @@ const Main = () => {
         console.log(data);
         setImage(data.uri);
 
-        //move to the validate photo page
-        router.push({ pathname: `/validate_photo`, params: { image: image } });
-      } catch (e) {
-        console.log(`Exception: ${e}`);
-      }
+                //move to the validate photo page
+                if(image){
+                    console.log(`Image: ${image}`)
+                    router.push({ pathname: `/validate_photo`, params: { image: image } });
+                }
+                
+            }catch(e){
+                console.log(`Exception: ${e}`)
+            }
+        }
     }
-  };
-  const flip = () => {
-    setType(type == "front" ? "back" : "front");
-  };
+    const flip = () => {
+        setType(type == "front"? "back": "front" );
+      };
 
   if (hasCameraPermissions === false) {
     return (
@@ -58,6 +63,7 @@ const Main = () => {
   }
 
   return (
+    <SafeAreaView style={{ flex: 1 }}>
     <View style={styles.container}>
       <StatusBar style="auto" />
       <View style={styles.header}>
@@ -89,6 +95,7 @@ const Main = () => {
         <Text style={styles.btn_text}>TAKE PHOTO</Text>
       </TouchableOpacity>
     </View>
+    </SafeAreaView>
   );
 };
 
