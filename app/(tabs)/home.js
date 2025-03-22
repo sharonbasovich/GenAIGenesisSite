@@ -4,11 +4,9 @@ import { useState } from 'react';
 import { useRouter, Stack } from 'expo-router' 
 // import Nav from '../../components/Nav'
 
-const Main = () => {
+const Home = () => {
+    const menus = ["A","B","C","D","E"]
 
-    const photo = () => {
-        console.log('pressed photo button')
-    }
     return(
         <View style={styles.container}>
             <StatusBar style="auto" />
@@ -16,34 +14,28 @@ const Main = () => {
             <View style={styles.header}>
                 {/* <Stack.Screen options={{ header: () => <Nav /> }} /> */}
             </View>
+
+            <Text style={styles.title}>
+                YOUR MENUS
+            </Text>
             
 
-            <View style={styles.camera_area}>
-                <Text>
+            <View style={styles.menu_area}>
 
-                    Camera
-                </Text>
             </View>
-            
-
-
-                <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={photo}>
-                    <Text style={styles.btn_text}>TAKE PHOTO</Text>
-                </TouchableOpacity>
             
         </View>
     )
 
 }
 
-export default Main
+export default Home
 
 const styles = StyleSheet.create({
     title: {
-        color: '#ff5733',
+        color: '#000',
         fontSize: 30,
         fontWeight: 600,
-        marginTop: 150
     },
     container: {
       flex: 1,
@@ -60,26 +52,9 @@ const styles = StyleSheet.create({
         minHeight:40,
         backgroundColor:'#D9D9D9'
     },
-    camera_area: {
+    menu_area: {
         width:'100%',
-        backgroundColor: '#D9D9D9',
-        height:'70%',
-        marginBottom:20,
-        alignItems:'center',
-        justifyContent:'center'
-    },
-    photo_btn: {
-        backgroundColor:'#54F2D6',
-        borderRadius:24,
-        textAlign:'center',
-        paddingHorizontal: 15,
-        paddingVertical:12,
-        marginBottom: 60,
+        height:'80%',
         borderWidth:1
-    },
-    btn_text: {
-        color: '#000000',
-        fontSize: 22,
-        fontWeight:700
     }
 })

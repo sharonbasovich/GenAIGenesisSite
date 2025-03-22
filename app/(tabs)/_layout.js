@@ -1,4 +1,6 @@
 import { Tabs } from "expo-router"
+import { StatusBar } from "expo-status-bar";
+
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import Ionicons from 'react-native-vector-icons/Ionicons'
@@ -9,7 +11,9 @@ const TabsLayout = () => {
     return(
         <Tabs screenOptions={{headerShown: false}}>
             <Tabs.Screen name="index"  />
-            <Tabs.Screen name="history"  />
+            <Tabs.Screen name="validatephoto" />
+            <Tabs.Screen name="home" />
+
         </Tabs>
     )
 }

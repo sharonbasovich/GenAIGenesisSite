@@ -18,13 +18,9 @@ const App = () => {
                     style={{width:'80%',marginHorizontal:'auto'}}
                 />
 
-                <TouchableOpacity activeOpacity={0.8} style={styles.start}>
+                <TouchableOpacity activeOpacity={0.8} style={styles.start} onPress={navApp}>
                     <Text style={styles.btn_text}>GET STARTED</Text>
                 </TouchableOpacity>
-            
-            
-                
-            
         </View>
     )
 
@@ -33,12 +29,6 @@ const App = () => {
 export default App
 
 const styles = StyleSheet.create({
-    // image: {
-    //     color: '#ff5733',
-    //     fontSize: 30,
-    //     fontWeight: 600,
-    //     marginTop: 150
-    // },
     container: {
       flex: 1,
       backgroundColor: '#fff',
@@ -46,5 +36,15 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       paddingHorizontal: 16, 
     },
+    start: {
+        backgroundColor:'#D9D9D9',
+        padding:12,
+        alignItems:'center',
+        borderRadius:24
+    },
+    btn_text: {
+        fontSize:28,
+        fontWeight:700
+    }
     
 })
