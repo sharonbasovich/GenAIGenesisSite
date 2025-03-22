@@ -2,7 +2,7 @@ import { setStatusBarBackgroundColor, StatusBar } from "expo-status-bar";
 import { StyleSheet, TextInput, Text, View, Pressable, TouchableOpacity, Image } from "react-native";
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
-// import Nav from '../../components/Nav'
+import Nav from '../../components/Nav'
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 
@@ -61,7 +61,7 @@ const PhotoValidate = () => {
             <StatusBar style="auto" />
 
             <View style={styles.header}>
-                {/* <Stack.Screen options={{ header: () => <Nav /> }} /> */}
+                <Nav></Nav>
             </View>
             
 
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         height:'10%',
         maxHeight:60,
         minHeight:40,
-        backgroundColor:'#D9D9D9'
+        backgroundColor:'transparent'
     },
     camera_area: {
         width:'100%',
