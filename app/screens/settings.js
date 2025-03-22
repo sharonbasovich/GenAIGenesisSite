@@ -7,15 +7,17 @@ import {
   Pressable,
   TouchableOpacity,
   Image,
+  ScrollView,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useRouter, Stack, useLocalSearchParams } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Nav from "../../components/Nav";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Entypo from "react-native-vector-icons/Entypo";
 import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import Checkbox from "expo-checkbox";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const data = [
   { label: "Afrikaans", value: "Afrikaans" },
@@ -150,6 +152,8 @@ const PhotoValidate = () => {
 
   //dropdown code
   const [value, setValue] = useState(null);
+  const [isChecked1, setChecked1] = useState(false);
+  const [isChecked2, setChecked2] = useState(false);
 
   const renderItem = (item) => {
     return (
@@ -173,74 +177,92 @@ const PhotoValidate = () => {
   const [text3, onChangeText3] = React.useState("");
 
   return (
-    <SafeAreaView style={{flex:1}}>
-    <View style={styles.container}>
-      <StatusBar style="auto" />
+    <SafeAreaView style={{flex: 1}}>
+      <ScrollView>
+        <View style={styles.container}>
+          <StatusBar style="auto" />
 
-      <View style={styles.header}>
-        <Nav></Nav>
-      </View>
+          <View style={styles.header}>
+            <Nav></Nav>
+          </View>
 
-      <View style={styles.settings_area}>
-        <Text style={styles.title}>SETTINGS</Text>
-        <Text style={styles.title2}>Language</Text>
-        <Dropdown
-          style={styles.dropdown}
-          placeholderStyle={styles.placeholderStyle}
-          selectedTextStyle={styles.selectedTextStyle}
-          inputSearchStyle={styles.inputSearchStyle}
-          iconStyle={styles.iconStyle}
-          data={data}
-          search
-          maxHeight={300}
-          labelField="label"
-          valueField="value"
-          placeholder="Select item"
-          searchPlaceholder="Search..."
-          value={value}
-          onChange={(item) => {
-            setValue(item.value);
-          }}
-          renderLeftIcon={() => (
-            <Entypo
-              style={styles.icon}
-              color="black"
-              name="language"
-              size={20}
+          <View style={styles.settings_area}>
+            <Text style={styles.title}>SETTINGS</Text>
+            <Text style={styles.title2}>Language</Text>
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              inputSearchStyle={styles.inputSearchStyle}
+              iconStyle={styles.iconStyle}
+              data={data}
+              search
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select item"
+              searchPlaceholder="Search..."
+              value={value}
+              onChange={(item) => {
+                setValue(item.value);
+              }}
+              renderLeftIcon={() => (
+                <Entypo
+                  style={styles.icon}
+                  color="black"
+                  name="language"
+                  size={20}
+                />
+              )}
+              renderItem={renderItem}
             />
-          )}
-          renderItem={renderItem}
-        />
-        <Text style={styles.title2}>Allergies</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={onChangeText1}
-          value={text1}
-          placeholder="What are your allergies?"
-          multiline={true}
-          textAlignVertical="top"
-        />
-        <Text style={styles.title2}>Food Preferences</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={onChangeText2}
-          value={text2}
-          placeholder="What foods can you eat and which ones do you avoid?"
-          multiline={true}
-          textAlignVertical="top"
-        />
-        <Text style={styles.title2}>Allergies</Text>
-        <TextInput
-          style={styles.input}
-          onChangeText={onChangeText3}
-          value={text3}
-          placeholder="Describe your culture"
-          multiline={true}
-          textAlignVertical="top"
-        />
-        <Text style={styles.title2}>Priorities</Text>
-      </View>
-    </View>
+            <Text style={styles.title2}>Allergies</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={onChangeText1}
+              value={text1}
+              placeholder="What are your allergies?"
+              multiline={true}
+              textAlignVertical="top"
+            />
+            <Text style={styles.title2}>Food Preferences</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={onChangeText2}
+              value={text2}
+              placeholder="What foods can you eat and which ones do you avoid?"
+              multiline={true}
+              textAlignVertical="top"
+            />
+            <Text style={styles.title2}>Allergies</Text>
+            <TextInput
+              style={styles.input}
+              onChangeText={onChangeText3}
+              value={text3}
+              placeholder="Describe your culture"
+              multiline={true}
+              textAlignVertical="top"
+            />
+            <Text style={styles.title3}>Priorities</Text>
+            <View style={styles.section}>
+              <Checkbox
+                style={{ marginRight: 5 }}
+                value={isChecked1}
+                onValueChange={setChecked1}
+              />
+              <Text>Sustainable Ingredients</Text>
+            </View>
+            <View style={styles.section}>
+              <Checkbox
+                style={{ marginRight: 5 }}
+                value={isChecked2}
+                onValueChange={setChecked2}
+              />
+              <Text>Value per dollar</Text>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -248,6 +270,7 @@ const PhotoValidate = () => {
 export default PhotoValidate;
 
 const styles = StyleSheet.create({
+  section: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
   title: {
     color: "#000",
     fontSize: 36,
@@ -260,6 +283,13 @@ const styles = StyleSheet.create({
     fontWeight: 800,
     marginTop: 16,
   },
+  title3: {
+    color: "#000",
+    fontSize: 24,
+    fontWeight: 800,
+    marginTop: 16,
+    marginBottom: 8,
+  },
   input: {
     height: 80,
     width: 300,
@@ -270,7 +300,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFFFF",
     alignItems: "flex-start",
     // justifyContent: "space-between",
     paddingHorizontal: 16,
@@ -285,7 +315,7 @@ const styles = StyleSheet.create({
   },
   settings_area: {
     width: "100%",
-    backgroundColor: "#D9D9D9",
+    backgroundColor: "transparent",
     marginBottom: 20,
     alignItems: "flex-start",
     justifyContent: "flex-start",

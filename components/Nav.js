@@ -34,7 +34,7 @@ const Nav = () => {
     <View style={styles.container}>
       <Image
         source={require("../assets/MENU_MATE.png")}
-        style={{ width: 60, height: 30, marginRight: 105 }}
+        style={{ width: 60, height: 30, marginRight: 210 }}
       />
 
       {/* <div
