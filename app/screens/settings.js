@@ -18,6 +18,7 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Checkbox from "expo-checkbox";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Audio } from "expo-av";
 
 const data = [
   { label: "Afrikaans", value: "Afrikaans" },
@@ -175,10 +176,47 @@ const PhotoValidate = () => {
   const [text1, onChangeText1] = React.useState("");
   const [text2, onChangeText2] = React.useState("");
   const [text3, onChangeText3] = React.useState("");
+  const [recording, setRecording] = useState();
+  const [permissionResponse, requestPermission] = Audio.usePermissions();
+
+  async function startRecording() {
+    try {
+      /* @info */ if (permissionResponse.status !== "granted") {
+        console.log("Requesting permission..");
+        await requestPermission();
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      }); /* @end */
+
+      console.log("Starting recording..");
+      /* @info */ const { recording } = await Audio.Recording.createAsync(
+        /* @end */ Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      console.log("Recording started");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+    }
+  }
+
+  async function stopRecording() {
+    console.log("Stopping recording..");
+    setRecording(undefined);
+    /* @info */ await recording.stopAndUnloadAsync(); /* @end */
+    /* @info iOS may reroute audio playback to the phone earpiece when recording is allowed, so disable once finished. */ await Audio.setAudioModeAsync(
+      {
+        allowsRecordingIOS: false,
+      }
+    ); /* @end */
+    /* @info */ const uri = recording.getURI(); /* @end */
+    console.log("Recording stopped and stored at", uri);
+  }
 
   return (
-    <SafeAreaView style={{flex: 1}}>
-      <ScrollView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView style={{ color: "transparent" }}>
         <View style={styles.container}>
           <StatusBar style="auto" />
 
