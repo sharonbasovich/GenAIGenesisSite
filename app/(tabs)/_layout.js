@@ -14,6 +14,10 @@ const TabsLayout = () => {
             <Tabs.Screen name="validate_photo" />
             <Tabs.Screen name="home" />
             <Tabs.Screen name="select_feature" />
+            <Tabs.Screen name="accesible_menu" />
+            <Tabs.Screen name="summary_menu" />
+            <Tabs.Screen name="suggestions_menu" />
+
         </Tabs>
     )
 }

@@ -44,17 +44,18 @@ const PhotoValidate = () => {
         }
     }
     console.log(`URIIIIII: ${uri}`)
-    const content = (
-        <Text>No Photo Taken</Text>
-       )
-    if(uri){
-        const content = (
-            <Image 
-                    source={{uri: uri}}
-                    style={{flex:1,width:'100%','height':'100%'}}
+    const content =  (
+        <View style={styles.camera_area}>
+            {uri ? (
+                <Image 
+                    source={{ uri: uri }} // Ensure correct object format
+                    style={{ flex: 1, width: '100%', height: '100%' }}
                 />
-        )
-    }
+            ) : (
+                <Text>No Photo Taken</Text>
+            )}
+        </View>
+    )
 
     return(
         <View style={styles.container}>
