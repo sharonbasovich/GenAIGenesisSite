@@ -7,15 +7,17 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Nav from "../../components/Nav";
+import Nav from "../../../components/Nav";
 
 const Home = () => {
   const col_num = 2;
+  const router = useRouter()
   const MENUS = [
     {
       id: "1",
@@ -74,6 +76,11 @@ const Home = () => {
     return data;
   };
 
+  const open_selection =() => {
+    console.log('open selection')
+    router.push('/screens/home/select_feature')
+  }
+
   return (
     <SafeAreaView style={{flex:1}}>
     <View style={styles.container}>
@@ -97,7 +104,11 @@ const Home = () => {
           console.log(item.id);
           return (
             <View style={styles.card} key={item.id}>
-              <Text style={styles.menu_title}>{item.uri}</Text>
+                <Pressable onPress={open_selection}>
+                    <View style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
+                        <Text style={styles.menu_title}>{item.uri}</Text>
+                    </View>
+              </Pressable>
             </View>
           );
         }}
@@ -146,7 +157,6 @@ const styles = StyleSheet.create({
   menu_area: {
     width: "100%",
     height: "60%",
-    borderWidth: 1,
     marginBottom: 20,
   },
   card: {

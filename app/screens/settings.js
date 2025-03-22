@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { useRouter, Stack, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import Nav from "../../components/Nav";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
 import Entypo from "react-native-vector-icons/Entypo";
@@ -172,6 +173,7 @@ const PhotoValidate = () => {
   const [text3, onChangeText3] = React.useState("");
 
   return (
+    <SafeAreaView style={{flex:1}}>
     <View style={styles.container}>
       <StatusBar style="auto" />
 
@@ -239,6 +241,7 @@ const PhotoValidate = () => {
         <Text style={styles.title2}>Priorities</Text>
       </View>
     </View>
+    </SafeAreaView>
   );
 };
 

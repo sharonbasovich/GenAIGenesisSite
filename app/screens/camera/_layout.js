@@ -1,13 +1,12 @@
 import { Stack } from "expo-router"
 
-const RootLayout = () => {
+const CameraLayout = () => {
   return(
     <Stack >
         <Stack.Screen name="index" options={{headerShown: false}} />
-        <Stack.Screen name="screens" options={{headerShown: false}} />
+        <Stack.Screen name="validate_photo" options={{headerShown: false}} />
     </Stack>
   )
 }
 
-export default RootLayout
-
+export default CameraLayout

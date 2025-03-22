@@ -4,7 +4,7 @@ import { Image } from 'expo-image'
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Nav from '../../components/Nav'
+import Nav from '../../../components/Nav'
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'

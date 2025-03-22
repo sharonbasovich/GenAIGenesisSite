@@ -8,76 +8,72 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Nav from "../../components/Nav";
+import Nav from "../../../components/Nav";
+import Foundation from 'react-native-vector-icons/Foundation'
 
-const SelectFeature = () => {
-  const summary = () => {
-    console.log("pressed summary button");
+
+const SummaryMenu = () => {
+  const router = useRouter()
+  const textToSpeech = () => {
+    console.log("pressed text to speech");
   };
-  const suggestion = () => {
-    console.log("pressed suggestion button");
-  };
-  const accesible = () => {
-    console.log("pressed accesible button");
-  };
+
+  const backArrow = () => {
+    console.log('pressed back arrow')
+    router.push('/screens/home/select_feature')
+  }
   return (
     <SafeAreaView style={{flex:1}}>
+
     <View style={styles.container}>
       <StatusBar style="auto" />
 
       <View style={styles.header}>
         <Nav />
       </View>
+      
+          <View style={{width:'100%',height:40, paddingHorizontal:15}}>
+            <Pressable onPress={backArrow}>
+            <Foundation name="arrow-left" size={50}/>
+            </Pressable>
+                    
+             </View>
 
-      <View style={styles.menu_display}>
-        <View style={styles.menu}></View>
-      </View>
+      <Text style={styles.title}>SUMMARY MENU</Text>
+      <View style={styles.menu}></View>
 
       <View style={styles.button_container}>
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.photo_btn}
-          onPress={accesible}
+          onPress={textToSpeech}
         >
+          <MaterialCommunityIcons name="speaker-wireless" size={45} />
           <Text style={styles.btn_text}>
-            ACCESSIBLE
+            READ IT
             {"\n"}
-            MENU
+            TO ME
           </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.photo_btn}
-          onPress={summary}
-        >
-          <Text style={styles.btn_text}>SUMMARY</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.photo_btn}
-          onPress={suggestion}
-        >
-          <Text style={styles.btn_text}>SUGGESTION</Text>
         </TouchableOpacity>
       </View>
     </View>
     </SafeAreaView>
+
   );
 };
 
-export default SelectFeature;
+export default SummaryMenu;
 
 const styles = StyleSheet.create({
   title: {
-    color: "#ff5733",
-    fontSize: 30,
-    fontWeight: 600,
-    marginTop: 150,
+    color: "#000",
+    fontSize: 36,
+    fontWeight: 800,
+    marginBottom: 20,
   },
   container: {
     flex: 1,
@@ -94,10 +90,10 @@ const styles = StyleSheet.create({
     minHeight: 40,
     backgroundColor: "transparent",
   },
-  menu_display: {
+  menu: {
     width: "100%",
     backgroundColor: "#D9D9D9",
-    height: "50%",
+    height: "70%",
     maxHeight: 350,
     alignItems: "center",
     justifyContent: "center",
@@ -106,11 +102,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
-    height: "25%",
-    // borderWidth:1,
-    marginBottom: 40,
-    maxHeight: 200,
-    gap:20
+    height: "10%",
+    marginBottom: 20,
+    minHeight: "fit-content",
   },
   photo_btn: {
     backgroundColor: "#54F2D6",
@@ -120,6 +114,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderWidth: 1,
     width: "60%",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 30,
   },
   btn_text: {
     color: "#000000",

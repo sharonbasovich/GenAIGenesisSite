@@ -7,7 +7,7 @@ const App = () => {
     const router = useRouter()
 
     const navApp = () => {
-        router.push('/(tabs)')
+        router.push('/screens')
     }
 
     return(
