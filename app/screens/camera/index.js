@@ -39,16 +39,15 @@ const Main = () => {
         console.log(data);
         setImage(data.uri);
 
-                //move to the validate photo page
-                if(image){
-                    console.log(`Image: ${image}`)
-                    router.push({ pathname: `/validate_photo`, params: { image: image } });
-                }
-                
-            }catch(e){
-                console.log(`Exception: ${e}`)
-            }
+        if(data && data.uri){
+            console.log(`Image: ${data.uri}`)
+            router.push({ pathname: `screens/camera/validate_photo`, params: { image: data.uri } });
         }
+                
+        }catch(e){
+            console.log(`Exception: ${e}`)
+        }
+        }   
     }
     const flip = () => {
         setType(type == "front"? "back": "front" );

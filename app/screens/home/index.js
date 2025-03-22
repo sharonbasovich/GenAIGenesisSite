@@ -95,6 +95,7 @@ const Home = () => {
       <FlatList
         style={styles.menu_area}
         data={formatData(MENUS, col_num)}
+        // data={formatData(() => getData('uri_list'), col_num)}
         columnWrapperStyle={styles.row} // Centering and spacing between columns
         contentContainerStyle={styles.list} // Centering list in screen
         renderItem={({ item }) => {
@@ -104,8 +105,8 @@ const Home = () => {
           console.log(item.id);
           return (
             <View style={styles.card} key={item.id}>
-                <Pressable onPress={open_selection}>
-                    <View style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
+                <Pressable onPress={open_selection} style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
+                    <View>
                         <Text style={styles.menu_title}>{item.uri}</Text>
                     </View>
               </Pressable>

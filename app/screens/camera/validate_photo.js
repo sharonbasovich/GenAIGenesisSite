@@ -17,13 +17,14 @@ const PhotoValidate = () => {
     useEffect(() => {
         if (params.image) {
             console.log(`URI: ${params.image}`)
-            setUri(params.image);
+            // setUri(params.image);
+            setUri(params.image.split('/').slice(-1)[0])
         }
     }, []);
 
     const retake =() => {
         setUri(null)
-        router.push('/')
+        router.push('/screens/camera')
     }
 
     const storeData = async (value) => {
@@ -88,12 +89,13 @@ const PhotoValidate = () => {
     // console.log(`URIIIIII: ${uri}`)
     const content =  (
         <View style={styles.camera_area}>
-            {uri ? (
-                <Image 
-                    source={uri}
-                    style={{ flex: 1, width: '100%', height: '100%' }}
-                    onError={(error) => console.log('Image loading error:', error)}
-                />
+            {params.image ? (
+                // <Image 
+                //     source={uri}
+                //     style={{ flex: 1, width: '100%', height: '100%' }}
+                //     onError={(error) => console.log('Image loading error:', error)}
+                // />
+                <Text>{params.image.split('/').slice(-1)[0]}</Text>
             ) : (
                 <Text>No Photo Taken</Text>
             )}
