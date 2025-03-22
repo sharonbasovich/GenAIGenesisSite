@@ -17,17 +17,17 @@ const Nav = () => {
 
   const home = async () => {
     // console.log("home");
-    router.push('/home');
+    router.push('screens/home');
   };
 
   const settings = async () => {
     // console.log("settings");
-    router.push("/settings");
+    router.push("screens/settings");
   };
 
   const camera = async () => {
     console.log("camera");
-    router.push('/');
+    router.push('screens/camera');
   };
   //home should send the user to the dashboard
   return (

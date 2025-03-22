@@ -9,26 +9,38 @@ import {
   TouchableOpacity,
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Nav from "../../components/Nav";
+import Nav from "../../../components/Nav";
+import Foundation from 'react-native-vector-icons/Foundation'
 
-const SummaryMenu = () => {
+const AccesibleMenu = () => {
+  const router = useRouter()
   const textToSpeech = () => {
     console.log("pressed text to speech");
   };
+
+  const backArrow = () => {
+    console.log('pressed back arrow')
+    router.push('/screens/home/select_feature')
+  }
   return (
     <SafeAreaView style={{flex:1}}>
-
     <View style={styles.container}>
       <StatusBar style="auto" />
 
       <View style={styles.header}>
         <Nav />
       </View>
+      <View style={{width:'100%',height:40, paddingHorizontal:15}}>
+        <Pressable onPress={backArrow}>
+        <Foundation name="arrow-left" size={50}/>
+        </Pressable>
+              
+       </View>
 
-      <Text style={styles.title}>SUMMARY MENU</Text>
+      <Text style={styles.title}>ACCESIBLE MENU</Text>
       <View style={styles.menu}></View>
 
       <View style={styles.button_container}>
@@ -47,11 +59,10 @@ const SummaryMenu = () => {
       </View>
     </View>
     </SafeAreaView>
-
   );
 };
 
-export default SummaryMenu;
+export default AccesibleMenu;
 
 const styles = StyleSheet.create({
   title: {

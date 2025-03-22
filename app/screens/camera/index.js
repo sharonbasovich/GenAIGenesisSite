@@ -13,7 +13,7 @@ import * as MediaLibrary from "expo-media-library";
 import { useRouter, Stack, usePathname } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import Nav from "../../components/Nav";
+import Nav from "../../../components/Nav";
 
 const Main = () => {
   const [hasCameraPermissions, setHasCameraPermissions] = useState(false);
