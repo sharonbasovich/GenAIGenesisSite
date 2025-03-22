@@ -9,9 +9,6 @@ import Entypo from 'react-native-vector-icons/Entypo'
 const PhotoValidate = () => {
     const [uri, setUri] = useState(null)
     const router = useRouter()
-    const photo = () => {
-        console.log('pressed photo button')
-    }
     const params = useLocalSearchParams();
 
     useEffect(() => {
@@ -19,7 +16,7 @@ const PhotoValidate = () => {
             console.log(`URI: ${params.image}`)
             setUri(params.image);
         }
-    }, []);
+    }, [params]);
     const retake =() => {
         router.push('/')
     }
@@ -48,7 +45,7 @@ const PhotoValidate = () => {
         <View style={styles.camera_area}>
             {uri ? (
                 <Image 
-                    source={{ uri: uri }} // Ensure correct object format
+                    source={{uri: uri}} // Ensure correct object format
                     style={{ flex: 1, width: '100%', height: '100%' }}
                 />
             ) : (

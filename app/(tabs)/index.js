@@ -33,7 +33,11 @@ const Main = () => {
                 setImage(data.uri)
 
                 //move to the validate photo page
-                router.push({ pathname: `/validate_photo`, params: { image: image } });
+                if(image){
+                    console.log(`Image: ${image}`)
+                    router.push({ pathname: `/validate_photo`, params: { image: image } });
+                }
+                
             }catch(e){
                 console.log(`Exception: ${e}`)
             }
