@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#e6e3e2',
         width: '80%',
+        maxWidth:400,
         height: 45,
         paddingRight: 10,
         paddingLeft: 10,
@@ -133,6 +134,7 @@ const styles = StyleSheet.create({
       },
       action_btn: {
         width: '80%',
+        maxWidth:400,
         height: 45,
       }
     

@@ -3,19 +3,21 @@ import { StyleSheet, ActivityIndicator, Text, View, Pressable, TouchableOpacity,
 import { Image } from 'expo-image'
 import { useState,useEffect } from 'react';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router' 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Nav from '../../../components/Nav'
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
+import * as FileSystem from 'expo-file-system';
 import { collection, addDoc } from "firebase/firestore";
+import * as ImagePicker from 'expo-image-picker';
+
 
 const PhotoValidate = () => {
     const [uri, setUri] = useState(null)
     const router = useRouter()
     const params = useLocalSearchParams();
     const [loading, setLoading] = useState(false);
-    const [imagePath, setImagePath] = useState(null)
+    const [image, setImage] = useState(null)
     const API_URL = "http://166.104.146.34:5000"; // Replace X with your actual IP
     const cloudName = "denroue1s"
     const apiKey = "823362473226329"
@@ -31,15 +33,56 @@ const PhotoValidate = () => {
 
     const retake =() => {
         setUri(null)
-        setImagePath(null)
+        setImage(null)
         router.push('/screens/camera')
+    }
+
+    const postPicture = async (uri) => {
+        const apiUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
+        const uriParts = uri.split('.');
+        const fileType = uriParts[uriParts.length - 1];
+        const formData = new FormData();
+            formData.append('photo', {
+              uri,
+              name: `photo.${fileType}`,
+              type: `image/${fileType}`,
+            });
+        const options = {
+              method: 'POST',
+              body: formData,
+              headers: {
+                Accept: 'application/json',
+                'Content-Type': 'multipart/form-data',
+              },
+            };
+            console.log('ags')
+            const result = await fetch(apiUrl, options);
+            console.log(result.json())
+          }
+
+    const pickImage = async () => {
+        // No permissions request is necessary for launching the image library
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images', 'videos'],
+          allowsEditing: true,
+          base64:true,
+          aspect: [4, 3],
+          quality: 1,
+        });
+
+        console.log(result);
+
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+            console.log(`Picked Image ${result.assets[0].uri}`)
+        }
     }
 
     const uploadImageToCloudinary = async (uri) => {
         console.log('cloudinary')
         console.log(uri)
-        const response = await fetch(uri);
-        const blob = await response.blob();
+        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64});
+        const blob = await fetch(`data:image/jpeg;base64,${base64}`).then(r => r.blob())
         console.log(blob)
         const formData = new FormData();
         formData.append("file", blob);
@@ -171,13 +214,13 @@ const PhotoValidate = () => {
     const content =  (
         <View style={styles.camera_area}>
         
-            {params.image ? (
+            {image ? (
                 // <Image 
                 //     source={source(imagePath)}
                 //     style={{ flex: 1, width: '100%', height: '100%' }}
                 //     onError={(error) => console.log('Image loading error:', error)}
                 // />
-                <Text>{params.image.split('/').slice(-1)[0]}</Text>
+                <Image source={{ uri: image }}style={{ flex: 1, width: '100%', height: '100%' }} />
             ) : (
                 <Text>No Photo Taken</Text>
             )}

@@ -6,6 +6,7 @@ import {
   View,
   Pressable,
   TouchableOpacity,
+  Alert
 } from "react-native";
 import { useState, useEffect, useRef } from "react";
 import { Camera, CameraType, CameraView } from "expo-camera";
@@ -17,6 +18,8 @@ import Nav from "../../../components/Nav";
 
 const Main = () => {
   const [hasCameraPermissions, setHasCameraPermissions] = useState(false);
+  const [hasMediaPermissions, setHasMediaPermissions] = useState(false);
+
   const [image, setImage] = useState(null);
   const [type, setType] = useState("back");
   const [flash, setFlash] = useState("off");
@@ -25,9 +28,10 @@ const Main = () => {
 
   useEffect(() => {
     (async () => {
-      await MediaLibrary.requestPermissionsAsync();
+      const mediaStatus = await MediaLibrary.requestPermissionsAsync();
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
-      setHasCameraPermissions(cameraStatus.status === "granted");
+      setHasCameraPermissions(cameraStatus.status === "granted")
+      setHasMediaPermissions(mediaStatus.status === "granted");
     })();
   }, []);
 
@@ -39,13 +43,20 @@ const Main = () => {
         console.log(data);
 
         if(data && data.uri){
-            setImage(data.uri);
-            console.log(`Image: ${data.uri}`)
+          try {
+            await MediaLibrary.saveToLibraryAsync(data.uri); // Save to device's media library
+            Alert.alert("Photo Saved", "Photo saved to your device."); // Notify user
             router.push({ pathname: `screens/camera/validate_photo`, params: { image: data.uri } });
+
+          } catch (saveError) {
+            console.error("Error saving photo:", saveError);
+            Alert.alert("Save Failed", "Failed to save the photo."); // Inform user of failure
+          }
         }
                 
         }catch(e){
             console.log(`Exception: ${e}`)
+            Alert.alert("Camera Error", "An error occurred taking the photo.");
         }
         }   
     }

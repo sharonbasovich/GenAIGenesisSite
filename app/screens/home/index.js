@@ -13,7 +13,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Nav from "../../../components/Nav";
 
 const Home = () => {

@@ -135,7 +135,8 @@ const styles = StyleSheet.create({
         paddingTop: 6,
         paddingBottom: 6,
         marginBottom: 15,
-        borderRadius: 6
+        borderRadius: 6,
+        maxWidth:400,
       },
       input_container: {
         marginBottom: 200,
@@ -161,6 +162,7 @@ const styles = StyleSheet.create({
       action_btn: {
         width: '80%',
         height: 45,
+        maxWidth:400
       }
     
 })
