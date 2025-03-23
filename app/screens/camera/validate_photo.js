@@ -8,7 +8,7 @@ import Nav from '../../../components/Nav'
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
-import ExpoCheckbox from "expo-checkbox/build/ExpoCheckbox";
+import { collection, addDoc } from "firebase/firestore";
 
 const PhotoValidate = () => {
     const [uri, setUri] = useState(null)
@@ -17,6 +17,9 @@ const PhotoValidate = () => {
     const [loading, setLoading] = useState(false);
     const [imagePath, setImagePath] = useState(null)
     const API_URL = "http://166.104.146.34:5000"; // Replace X with your actual IP
+    const cloudName = "denroue1s"
+    const apiKey = "823362473226329"
+    const api_secret = "txnFvA2ykk49ulrm2eW5Waae_tw"
 
     useEffect(() => {
         if (params.image) {
@@ -32,78 +35,116 @@ const PhotoValidate = () => {
         router.push('/screens/camera')
     }
 
-    const storeData = async (value) => {
+    const uploadImageToCloudinary = async (uri) => {
+        console.log('cloudinary')
+        console.log(uri)
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        console.log(blob)
+        const formData = new FormData();
+        formData.append("file", blob);
+        formData.append("upload_preset", "ml_default");
+        formData.append("api_key", "823362473226329");
+
         try {
-          const jsonValue = JSON.stringify(value);
-          await AsyncStorage.setItem('uri_list', jsonValue);
-        } catch (e) {
-          console.log(`Error storing data: ${e}`)
-        }
-      };
-    
+            const cloudinaryResponse = await fetch(
+                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
 
-    const getData = async (key) => {
-        try {
-          const jsonValue = await AsyncStorage.getItem(key);
-          return jsonValue != null ? JSON.parse(jsonValue) : null;
-        } catch (e) {
-          console.log(`Error getting data: ${e}`)
-        }
-      };
-
-    const upload = async (uri) => {
-        console.log('send image to server')
-        //store local uris
-        try{
-            // const data = await getData('uri_list')
-            // if (data && data.url_list){
-            //     console.log(`existing data ${data}`)
-            //     data.uri_list.push({
-            //         "uri": uri,
-            //         "id": uri.split('/').slice(-1)[0]
-            //     });
-            //     console.log(`We now have ${data.length} uris`)
-            //     await storeData({'uri_list':data})
-    
-            // } else {
-            //     console.log(`Adding new data: ${uri}`)
-            //     await storeData({
-            //         'uri_list': [{
-            //             "uri": uri,
-            //             "id": uri.split('/').slice(-1)[0]
-            //         }]
-            //     });
-            // }
-            //send URI to the server
-            const formData = new FormData()
-            formData.append('image', {
-                uri: uri,
-                name: uri.split('/').pop(),
-                type: 'image/jpeg'
-            })
-
-            const response = await fetch("http://166.104.146.34:5000/upload", {
-                method: 'POST',
-                body: formData,
-                // Important: Do not set the Content-Type header explicitly
-                // Let the browser set it with the correct boundary
-              });
-            if (!response.ok) {
-                const errorText = await response.text()
-                console.log(`Server error: ${errorText}`)
+            const data = await cloudinaryResponse.json();
+            if (!data.secure_url) {
+                throw new Error(
+                    "Cloudinary upload failed: " + JSON.stringify(data)
+                );
             }
 
-            const result = await response.json()
-            if (result.image_path) {
-                setImagePath(result.image_path);
-                console.log(`set the image path: ${imagePath}`)
-            }
-        } catch(e){
-            console.log(`Exception: ${e}`)
-        } finally {
-            setLoading(false)
+            //return data.secure_url; // Return the image URL from Cloudinary
+            console.log(`cloud url: ${data.secure_url}`)
+        } catch (error) {
+            console.error("Cloudinary upload error:", error);
+            // throw new Error(
+            //     "Error uploading image to Cloudinary: " +
+            //         (error as Error).message
+            // );
         }
-    }
+    };
+
+    // const storeData = async (value) => {
+    //     try {
+    //       const jsonValue = JSON.stringify(value);
+    //       await AsyncStorage.setItem('uri_list', jsonValue);
+    //     } catch (e) {
+    //       console.log(`Error storing data: ${e}`)
+    //     }
+    //   };
+    
+
+    // const getData = async (key) => {
+    //     try {
+    //       const jsonValue = await AsyncStorage.getItem(key);
+    //       return jsonValue != null ? JSON.parse(jsonValue) : null;
+    //     } catch (e) {
+    //       console.log(`Error getting data: ${e}`)
+    //     }
+    //   };
+
+    // const upload = async (uri) => {
+    //     console.log('send image to server')
+    //     //store local uris
+    //     try{
+    //         // const data = await getData('uri_list')
+    //         // if (data && data.url_list){
+    //         //     console.log(`existing data ${data}`)
+    //         //     data.uri_list.push({
+    //         //         "uri": uri,
+    //         //         "id": uri.split('/').slice(-1)[0]
+    //         //     });
+    //         //     console.log(`We now have ${data.length} uris`)
+    //         //     await storeData({'uri_list':data})
+    
+    //         // } else {
+    //         //     console.log(`Adding new data: ${uri}`)
+    //         //     await storeData({
+    //         //         'uri_list': [{
+    //         //             "uri": uri,
+    //         //             "id": uri.split('/').slice(-1)[0]
+    //         //         }]
+    //         //     });
+    //         // }
+    //         //send URI to the server
+    //         const formData = new FormData()
+    //         formData.append('image', {
+    //             uri: uri,
+    //             name: uri.split('/').pop(),
+    //             type: 'image/jpeg'
+    //         })
+
+    //         const response = await fetch("http://166.104.146.34:5000/upload", {
+    //             method: 'POST',
+    //             body: formData,
+    //             // Important: Do not set the Content-Type header explicitly
+    //             // Let the browser set it with the correct boundary
+    //           });
+    //         if (!response.ok) {
+    //             const errorText = await response.text()
+    //             console.log(`Server error: ${errorText}`)
+    //         }
+
+    //         const result = await response.json()
+    //         if (result.image_path) {
+    //             setImagePath(result.image_path);
+    //             console.log(`set the image path: ${imagePath}`)
+    //         }
+    //     } catch(e){
+    //         console.log(`Exception: ${e}`)
+    //     } finally {
+    //         setLoading(false)
+    //     }
+    // }
 
     const handleSummarize = async () => {
         if (!imagePath) return;
@@ -131,12 +172,12 @@ const PhotoValidate = () => {
         <View style={styles.camera_area}>
         
             {params.image ? (
-                <Image 
-                    source={source(imagePath)}
-                    style={{ flex: 1, width: '100%', height: '100%' }}
-                    onError={(error) => console.log('Image loading error:', error)}
-                />
-                // <Text>{params.image.split('/').slice(-1)[0]}</Text>
+                // <Image 
+                //     source={source(imagePath)}
+                //     style={{ flex: 1, width: '100%', height: '100%' }}
+                //     onError={(error) => console.log('Image loading error:', error)}
+                // />
+                <Text>{params.image.split('/').slice(-1)[0]}</Text>
             ) : (
                 <Text>No Photo Taken</Text>
             )}
@@ -163,7 +204,7 @@ const PhotoValidate = () => {
             
 
             <View style={styles.btn_container}>
-                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={() => upload(uri)}>
+                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={() => uploadImageToCloudinary(uri)}>
                     <FontAwesome name="check" size={35} color="#000"/>
                     </TouchableOpacity>
 
