@@ -16,8 +16,35 @@ import Nav from "../../../components/Nav";
 import Foundation from "react-native-vector-icons/Foundation";
 import * as Speech from "expo-speech";
 
+
 const SummaryMenu = () => {
-  const router = useRouter();
+  const [imagePath, setImagePath] = useState(null);
+  if (!imagePath) return;
+    
+    setLoading(true);
+    setSimpleMenu(null);
+    setRecommendation(null);
+    try {
+      let response = fetch(`${API_URL}/summarize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          image_path: imagePath,
+          language: preferences.language,
+          dietary_restrictions: preferences.dietary_restrictions,
+          allergies: preferences.allergies,
+          culture: preferences.culture
+        }),
+      });
+  
+      let result = response.json();
+      setSummary(result.summary);
+    } catch (error) {
+      console.error("Error fetching summary:", error);
+      setSummary("Failed to load summary.");
+    } finally {
+      setLoading(false);
+    }
 
   const textToSpeech = async () => {
     const text = "this is text to speech";

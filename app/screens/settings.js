@@ -18,7 +18,10 @@ import { Dropdown } from "react-native-element-dropdown";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Checkbox from "expo-checkbox";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Audio } from "expo-av";
+import { Platform } from "react-native";
+
 
 const data = [
   { label: "Afrikaans", value: "Afrikaans" },
@@ -122,34 +125,64 @@ const data = [
   { label: "Zulu", value: "Zulu" },
 ];
 
-const PhotoValidate = () => {
-  const [uri, setUri] = useState(null);
-  const router = useRouter();
-  const params = useLocalSearchParams();
+const Settings = () => {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [recording, setRecording] = useState(null);
+  const [recordingStatus, setRecordingStatus] = useState("idle");
+  const [audioUri, setAudioUri] = useState(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [durationTimer, setDurationTimer] = useState(null);
+  const [imagePath, setImagePath] = useState(null);
+  const [summary, setSummary] = useState(null);
+  const [transcription, setTranscription] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  const API_URL = "http://100.65.10.200:5000";
+
+  // const getData = async (key) => {
+  //   try {
+  //     const jsonValue = await AsyncStorage.getItem(key);
+  //     return jsonValue != null ? JSON.parse(jsonValue) : [];
+  //   } catch (e) {
+  //     // error reading value
+  //   }
+  // };
+
+  // Request permissions for audio recording
   useEffect(() => {
-    if (params.image) {
-      console.log(`URI: ${params.image}`);
-      setUri(params.image);
-    }
-  }, []);
-  const retake = () => {
-    router.push("/");
-  };
+    const getPermissions = async () => {
+      try {
+        const audioPermission = await Audio.requestPermissionsAsync();
+        if (audioPermission.status !== "granted") {
+          setError("Permission to access microphone is required!");
+        }
+      } catch (err) {
+        console.error("Failed to get permissions:", err);
+        setError("Failed to get microphone permissions");
+      }
+    };
 
-  console.log(`URIIIIII: ${uri}`);
-  const content = (
-    <View style={styles.camera_area}>
-      {uri ? (
-        <Image
-          source={{ uri: uri }} // Ensure correct object format
-          style={{ flex: 1, width: "100%", height: "100%" }}
-        />
-      ) : (
-        <Text>No Photo Taken</Text>
-      )}
-    </View>
-  );
+    getPermissions();
+
+    // Clean up recording when component unmounts
+    return () => {
+      if (recording) {
+        stopRecording();
+      }
+    };
+  }, []);
+
+  //DIFFERENT
+
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem("uri_list", jsonValue);
+    } catch (e) {
+      console.log(`Error storing data: ${e}`);
+    }
+  };
 
   //dropdown code
   const [value, setValue] = useState(null);
@@ -172,51 +205,209 @@ const PhotoValidate = () => {
     );
   };
 
+  /////
+
   //text box
   const [text1, onChangeText1] = React.useState("");
   const [text2, onChangeText2] = React.useState("");
   const [text3, onChangeText3] = React.useState("");
-  const [recording, setRecording] = useState();
-  const [permissionResponse, requestPermission] = Audio.usePermissions();
 
-  async function startRecording() {
+  const confirmSettings = async () => {
+    const settings = {
+      settings: {
+        language: value ? value : "None",
+        allergies: text1 ? text1 : "None",
+        food_preferences: text2 ? text2 : "None",
+        culture: text3 ? text3 : "None",
+        prioritize_value_per_dollar: isChecked1 ? "Yes" : "No",
+        prioritize_sustainable_ingredients: isChecked2 ? "Yes" : "No",
+      },
+    };
+
+    await storeData(settings);
+    console.log("settings confirmed");
+  };
+
+  const [isRecording, setIsRecording] = React.useState(false); // Track recording state
+  const [activeMic, setActiveMic] = React.useState(null); // Track which mic started recording
+
+  // Start recording function
+  const startRecording = async () => {
     try {
-      /* @info */ if (permissionResponse.status !== "granted") {
-        console.log("Requesting permission..");
-        await requestPermission();
-      }
+      setError(null);
+      setTranscription(null); // Clear previous transcription
+      setAudioUri(null); // Clear previous audio URI
+
+      // Set audio mode for recording
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-      }); /* @end */
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
 
-      console.log("Starting recording..");
-      /* @info */ const { recording } = await Audio.Recording.createAsync(
-        /* @end */ Audio.RecordingOptionsPresets.HIGH_QUALITY
+      console.log("Starting recording...");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
       );
+
       setRecording(recording);
+      setRecordingStatus("recording");
+
+      // Start timer to track recording duration
+      const timer = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+
+      setDurationTimer(timer);
+
       console.log("Recording started");
     } catch (err) {
       console.error("Failed to start recording", err);
+      setError("Failed to start recording: " + err.message);
     }
-  }
+    // setIsRecording(true); // Set recording state to true
+    // setActiveMic(mic); // Set the active mic
+  };
 
-  async function stopRecording() {
-    console.log("Stopping recording..");
-    setRecording(undefined);
-    /* @info */ await recording.stopAndUnloadAsync(); /* @end */
-    /* @info iOS may reroute audio playback to the phone earpiece when recording is allowed, so disable once finished. */ await Audio.setAudioModeAsync(
-      {
-        allowsRecordingIOS: false,
+  // Stop recording function
+  const stopRecording = async () => {
+    console.log("Stopping recording...");
+
+    if (!recording) {
+      return;
+    }
+
+    try {
+      // Stop the recording
+      await recording.stopAndUnloadAsync();
+
+      // Stop the duration timer
+      if (durationTimer) {
+        clearInterval(durationTimer);
+        setDurationTimer(null);
       }
-    ); /* @end */
-    /* @info */ const uri = recording.getURI(); /* @end */
-    console.log("Recording stopped and stored at", uri);
-  }
+
+      // Reset audio mode
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
+
+      // Get the recorded file's URI
+      const uri = recording.getURI();
+      console.log("this is the ", uri);
+      setAudioUri(uri);
+      console.log("after usestate", audioUri);
+      setRecording(null);
+      setRecordingStatus("idle");
+
+      console.log("Recording stopped and stored at", uri);
+
+      // Here you would typically send the URI to your backend
+      // handleSendAudioToBackend(uri);
+    } catch (err) {
+      console.error("Failed to stop recording", err);
+      setError("Failed to stop recording: " + err.message);
+
+      // Reset state even on error
+      setRecording(null);
+      setRecordingStatus("idle");
+    }
+    // setIsRecording(false);
+    // setActiveMic(null); // Reset active mic
+    // handleTranscribe();
+    console.log("transcribing");
+  };
+
+  const handlePress = (mic) => {
+    if (!isRecording) {
+      startRecording(mic);
+    } else if (activeMic === mic) {
+      stopRecording();
+    }
+  };
+
+  const handlePressTest = () => {
+    if (!isRecording) {
+      setIsRecording(true);
+      startRecording();
+    } else {
+      setIsRecording(false);
+
+      stopRecording();
+    }
+  };
+
+  const handleTranscribe = async () => {
+    console.log(audioUri);
+    if (!audioUri) {
+      setError("No audio recording available");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      let formData = new FormData();
+      if (Platform.OS === "web") {
+        const response = await fetch(audioUri);
+        const blob = await response.blob();
+        formData.append("audio", blob, "recording.wav");
+      } else {
+        formData.append("audio", {
+          uri: audioUri,
+          name: audioUri.split("/").pop(),
+          type: "audio/wav",
+        });
+      }
+
+      console.log("Sending audio file to backend for transcription:", audioUri);
+
+      let response = await fetch(`${API_URL}/transcribe`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error:", errorText);
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      let result = await response.json();
+      console.log("Transcription result:", result);
+
+      setTranscription(result.transcript);
+    } catch (error) {
+      console.error("Error fetching transcription:", error);
+      setError("Failed to load transcription: " + error.message);
+      setTranscription(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Button press handlers
+  const handlePress1 = () => handlePress(1);
+  const handlePress2 = () => handlePress(2);
+  const handlePress3 = () => handlePress(3);
+
+  // Disable all other buttons when recording starts
+  const isDisabled = (mic) => isRecording && activeMic !== mic;
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ color: "transparent" }}>
+      <ScrollView>
+        <TouchableOpacity activeOpacity={0.8} onPress={handlePressTest}>
+          <FontAwesome name="microphone" size={40} />
+        </TouchableOpacity>
+        {audioUri && !loading && !recording && (
+          <TouchableOpacity onPress={handleTranscribe}>
+            <Text>Transcribe Audio</Text>
+          </TouchableOpacity>
+        )}
         <View style={styles.container}>
           <StatusBar style="auto" />
 
@@ -263,6 +454,14 @@ const PhotoValidate = () => {
               multiline={true}
               textAlignVertical="top"
             />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.mic_btn1}
+              onPress={handlePress1}
+              disabled={isDisabled(1)}
+            >
+              <FontAwesome name="microphone" size={40} />
+            </TouchableOpacity>
             <Text style={styles.title2}>Food Preferences</Text>
             <TextInput
               style={styles.input}
@@ -272,7 +471,16 @@ const PhotoValidate = () => {
               multiline={true}
               textAlignVertical="top"
             />
-            <Text style={styles.title2}>Allergies</Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.mic_btn2}
+              // style={[styles.mic_btn2, disabledStyle2]}
+              onPress={handlePress2}
+              disabled={isDisabled(2)}
+            >
+              <FontAwesome name="microphone" size={40} />
+            </TouchableOpacity>
+            <Text style={styles.title2}>Describe Your Culture</Text>
             <TextInput
               style={styles.input}
               onChangeText={onChangeText3}
@@ -281,22 +489,45 @@ const PhotoValidate = () => {
               multiline={true}
               textAlignVertical="top"
             />
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.mic_btn3}
+              // style={[styles.mic_btn3, disabledStyle3]}
+              onPress={handlePress3}
+              disabled={isDisabled(3)}
+            >
+              <FontAwesome name="microphone" size={40} />
+            </TouchableOpacity>
             <Text style={styles.title3}>Priorities</Text>
-            <View style={styles.section}>
-              <Checkbox
-                style={{ marginRight: 5 }}
-                value={isChecked1}
-                onValueChange={setChecked1}
-              />
-              <Text>Sustainable Ingredients</Text>
-            </View>
-            <View style={styles.section}>
-              <Checkbox
-                style={{ marginRight: 5 }}
-                value={isChecked2}
-                onValueChange={setChecked2}
-              />
-              <Text>Value per dollar</Text>
+
+            <View style={styles.bottom_container}>
+              <View style={styles.checkboxbox}>
+                <View style={styles.section}>
+                  <Checkbox
+                    style={{ marginRight: 5 }}
+                    value={isChecked1}
+                    onValueChange={setChecked1}
+                  />
+                  <Text>Sustainable Ingredients</Text>
+                </View>
+                <View style={styles.section}>
+                  <Checkbox
+                    style={{ marginRight: 5 }}
+                    value={isChecked2}
+                    onValueChange={setChecked2}
+                  />
+                  <Text>Value per dollar</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.btn}
+                activeOpacity={0.8}
+                onPress={confirmSettings}
+              >
+                <Text style={{ fontSize: 15, color: "#000", fontWeight: 800 }}>
+                  CONFIRM
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -305,10 +536,16 @@ const PhotoValidate = () => {
   );
 };
 
-export default PhotoValidate;
+export default Settings;
 
 const styles = StyleSheet.create({
   section: { flexDirection: "row", alignItems: "center", marginBottom: 5 },
+  inlineSTT: {
+    width: "100%",
+    right: 50,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+  },
   title: {
     color: "#000",
     fontSize: 36,
@@ -330,7 +567,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 80,
-    width: 300,
+    width: 250,
     borderWidth: 2,
     padding: 10,
     borderRadius: 8,
@@ -365,22 +602,20 @@ const styles = StyleSheet.create({
     flex: 1,
     resizeMode: "cover",
   },
-  photo_btn: {
+  btn: {
     backgroundColor: "#54F2D6",
-    borderRadius: "50%",
+    borderRadius: 12,
     borderWidth: 1,
-    padding: 5,
-    width: 90,
-    height: 90,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     alignItems: "center",
     justifyContent: "center",
   },
-  btn_container: {
+  bottom_container: {
     flexDirection: "row",
-    marginBottom: 30,
-    width: "50%",
     justifyContent: "space-between",
     alignItems: "center",
+    width: "100%",
   },
   dropdown: {
     marginTop: 16,
@@ -428,5 +663,44 @@ const styles = StyleSheet.create({
     width: 250,
     // left: -5,
     fontSize: 16,
+  },
+  mic_btn1: {
+    backgroundColor: "#54F2D6",
+    borderRadius: "50%",
+    borderWidth: 1,
+    // padding: 5,
+    width: 60,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    left: 290,
+    top: 245,
+  },
+  mic_btn2: {
+    backgroundColor: "#54F2D6",
+    borderRadius: "50%",
+    borderWidth: 1,
+    // padding: 5,
+    width: 60,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    left: 290,
+    top: 385,
+  },
+  mic_btn3: {
+    backgroundColor: "#54F2D6",
+    borderRadius: "50%",
+    borderWidth: 1,
+    // padding: 5,
+    width: 60,
+    height: 60,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "absolute",
+    left: 290,
+    top: 523,
   },
 });
