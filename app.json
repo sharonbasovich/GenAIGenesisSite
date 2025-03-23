@@ -21,7 +21,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.scientistbodybuilder.GenAIGenesisSite"
+      "package": "com.scientistbodybuilder.GenAIGenesisSite",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -37,6 +40,9 @@
       "eas": {
         "projectId": "25532cc4-ef2a-4457-a1ad-4659518f3a72"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/25532cc4-ef2a-4457-a1ad-4659518f3a72"
     }
   }
 }
