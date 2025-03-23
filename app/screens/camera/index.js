@@ -1,4 +1,6 @@
 import { StatusBar } from "expo-status-bar";
+import * as FileSystem from 'expo-file-system';
+import * as ImageManipulator from 'expo-image-manipulator';
 import {
   StyleSheet,
   TextInput,
@@ -35,6 +37,7 @@ const Main = () => {
     })();
   }, []);
 
+  
   const takePhoto = async () => {
     console.log("pressed photo button");
     if (cameraRef.current) {
@@ -44,9 +47,26 @@ const Main = () => {
 
         if(data && data.uri){
           try {
-            await MediaLibrary.saveToLibraryAsync(data.uri); // Save to device's media library
-            Alert.alert("Photo Saved", "Photo saved to your device."); // Notify user
-            router.push({ pathname: `screens/camera/validate_photo`, params: { image: data.uri } });
+            // Save the original image to the device's media library
+            await MediaLibrary.saveToLibraryAsync(data.uri);
+        
+            // Resize and compress the image
+            const manipResult = await ImageManipulator.manipulateAsync(
+              data.uri,
+              [{ resize: { width: 420, height: 420 } }], // Resize to 420x420
+              { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG } // Compress to 50% quality
+            );
+        
+            console.log('Manipulated Image:', manipResult);
+        
+            // Convert the manipulated image to a base64 string
+            const base64 = await FileSystem.readAsStringAsync(manipResult.uri, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+        
+            console.log('Base64 String:', base64);
+            console.log(base64)
+            // router.push({ pathname: `screens/camera/validate_photo`, params: { image: data.uri } });
 
           } catch (saveError) {
             console.error("Error saving photo:", saveError);
@@ -136,7 +156,7 @@ const styles = StyleSheet.create({
   camera_area: {
     width: "100%",
     backgroundColor: "#D9D9D9",
-    height: "70%",
+    height: "60%",
     marginBottom: 20,
     // alignItems:'center',
     // justifyContent:'center'

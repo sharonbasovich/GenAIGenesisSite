@@ -37,46 +37,20 @@ const PhotoValidate = () => {
         router.push('/screens/camera')
     }
 
-    const postPicture = async (uri) => {
-        const apiUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-        const uriParts = uri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-        const formData = new FormData();
-            formData.append('photo', {
-              uri,
-              name: `photo.${fileType}`,
-              type: `image/${fileType}`,
-            });
-        const options = {
-              method: 'POST',
-              body: formData,
-              headers: {
-                Accept: 'application/json',
-                'Content-Type': 'multipart/form-data',
-              },
-            };
-            console.log('ags')
-            const result = await fetch(apiUrl, options);
-            console.log(result.json())
-          }
-
     const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images', 'videos'],
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: true,
-          base64:true,
-          aspect: [4, 3],
           quality: 1,
         });
-
-        console.log(result);
-
+    
         if (!result.canceled) {
-            setImage(result.assets[0].uri);
-            console.log(`Picked Image ${result.assets[0].uri}`)
+          setSelectedImage(result.assets[0].uri);
+          setSummary(null); // Clear previous summary
+          uploadImageToCloudinary(result.assets[0].uri);
         }
-    }
+      };
+    
 
     const uploadImageToCloudinary = async (uri) => {
         console.log('cloudinary')
@@ -187,29 +161,7 @@ const PhotoValidate = () => {
     //     } finally {
     //         setLoading(false)
     //     }
-    // }
-
-    const handleSummarize = async () => {
-        if (!imagePath) return;
-        
-        setLoading(true);
-        try {
-          let response = await fetch(`${API_URL}/summarize`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image_path: imagePath }),
-          });
-      
-          let result = await response.json();
-          console.log(result);  // Print the response to check the format
-          setSummary(result.summary);
-        } catch (error) {
-          console.error("Error fetching summary:", error);
-          setSummary("Failed to load summary.");
-        } finally {
-          setLoading(false);
-        }
-      };
+    // 
 
     const content =  (
         <View style={styles.camera_area}>
@@ -222,7 +174,7 @@ const PhotoValidate = () => {
                 // />
                 <Image source={{ uri: image }}style={{ flex: 1, width: '100%', height: '100%' }} />
             ) : (
-                <Text>No Photo Taken</Text>
+                <Text>Upload an image</Text>
             )}
         </View>
     )
@@ -247,12 +199,12 @@ const PhotoValidate = () => {
             
 
             <View style={styles.btn_container}>
-                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={() => uploadImageToCloudinary(uri)}>
-                    <FontAwesome name="check" size={35} color="#000"/>
+                    <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={pickImage}>
+                    <FontAwesome name="upload" size={35} color="#000"/>
                     </TouchableOpacity>
 
                     <TouchableOpacity activeOpacity={0.8} style={styles.photo_btn} onPress={retake}>
-                    <Entypo name="cross" size={55} color="#000"/>
+                    <Entypo name="camera" size={55} color="#000"/>
                     {/* <Text>NO</Text> */}
                     </TouchableOpacity>
 
