@@ -15,7 +15,7 @@ CORS(app, resources={
     }
 })
 
-API_KEY = "AIzaSyCCTK90t4X7SVmmFHHbwRtI8u5sk_b7DZE"
+API_KEY = "YOUR_API_KEY"
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

@@ -45,9 +45,12 @@ def return_prompt(task, language, dietary, allergies, culture):
 
     if task == 'simple_menu':
         prompt = f"""
-        '1.translate the dishes in the picture to ' + {language} .
-        2.if the dish does not contain ingredients, just translate the name of the dish to phrase that is easy to understand.'
-        3.if the ingredients are too complex, use simplier terms.'
+        You are a helpful restaurant reviewer. 
+        Give some information of the menus simply. 
+
+        1. If the user does not use English, translate the dishes in the picture to ' + {language} .
+        2. if the dish does not contain ingredients, just translate the name of the dish to phrase that is easy to understand.'
+        3. if the ingredients are too complex, use simplier terms.'
         """
 
     if task == 'recommendation':

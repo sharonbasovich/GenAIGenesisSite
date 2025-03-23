@@ -15,7 +15,7 @@ import Foundation from "react-native-vector-icons/Foundation";
 import Nav from "../../../components/Nav";
 import * as ImagePicker from "expo-image-picker";
 
-const BACKEND_URL = "http://166.104.146.34:5000"; // 실제 백엔드 IP로 변경
+const BACKEND_URL = "YOUR_URL"; 
 
 const SelectFeature = () => {
   const router = useRouter();
@@ -24,7 +24,6 @@ const SelectFeature = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [uploadedImagePath, setUploadedImagePath] = useState("");
 
-  // asset 객체에서 파일명과 MIME 타입을 동적으로 추출하는 함수
   const getImageFileInfo = (asset) => {
     if (!asset || !asset.uri) {
       throw new Error("선택된 이미지의 정보가 올바르지 않습니다.");
@@ -46,7 +45,6 @@ const SelectFeature = () => {
     return { fileName, mimeType };
   };
 
-  // 이미지 업로드만 수행하는 함수
   const uploadImage = async (asset) => {
     try {
       setLoading(true);
@@ -87,8 +85,6 @@ const SelectFeature = () => {
     }
   };
 
-  // 업로드된 이미지 경로를 이용해 특정 백엔드 엔드포인트를 호출하는 함수  
-  // globalKey: 결과를 저장할 전역 변수 이름, endpoint: 호출할 백엔드 엔드포인트
   const fetchResult = async (endpoint, globalKey) => {
     if (!uploadedImagePath) {
       alert("No image uploaded. Please upload an image first.");
@@ -153,7 +149,6 @@ const SelectFeature = () => {
     }
   };
 
-  // 버튼 함수들
 
   const accesible = () => {
     console.log("ACCESSIBLE MENU 버튼 클릭됨");
@@ -161,7 +156,6 @@ const SelectFeature = () => {
       alert("Please upload an image first.");
       return;
     }
-    // accessible: /summarize 엔드포인트 사용, 결과 저장은 global.menuData
     fetchResult("simple_menu", "menuData");
   };
 
@@ -203,7 +197,7 @@ const SelectFeature = () => {
           </Pressable>
         </View>
         <View style={styles.menu_display}>
-          <View style={styles.menu}></View>
+          {/* <View style={styles.menu}></View> */}
           {selectedImage && (
             <Image source={{ uri: selectedImage }} style={styles.previewImage} />
           )}
@@ -285,7 +279,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     height: "25%",
-    marginBottom: 40,
+    marginBottom: 70,
     maxHeight: 200,
     gap: 20,
   },

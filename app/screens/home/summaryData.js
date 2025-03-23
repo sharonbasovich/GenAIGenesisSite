@@ -1,10 +1,12 @@
-import { StyleSheet, Text, View, Pressable, Image, ScrollView } from "react-native";
+import { StyleSheet, Text, View, Pressable, Image, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import Foundation from "react-native-vector-icons/Foundation";
 import Nav from "../../../components/Nav";
 import { useEffect, useState } from "react";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
+import * as Speech from "expo-speech";
 
 const SummaryData = () => {
   const router = useRouter();
@@ -13,6 +15,11 @@ const SummaryData = () => {
   const [menuImage, setMenuImage] = useState(null);
   const [hasData, setHasData] = useState(false);
 
+  const textToSpeech = async (text) => {
+    options = {};
+    Speech.speak(text, options);
+    console.log("pressed tts")
+  }
   // Debug info when component mounts
   useEffect(() => {
     console.log("SummaryData component rendered");
@@ -59,7 +66,18 @@ const SummaryData = () => {
                   <Image source={{ uri: menuImage }} style={styles.menuImage} />
                 </View>
               )}
-              
+              <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.photo_btn}
+            onPress={textToSpeech(summaryText)}
+          >
+            <MaterialCommunityIcons name="speaker-wireless" size={45} />
+            <Text style={styles.btn_text}>
+              READ IT
+              {"\n"}
+              TO ME
+            </Text>
+          </TouchableOpacity>
               <ScrollView style={styles.summaryContainer}>
                 <Text style={styles.summaryText}>{summaryText}</Text>
               </ScrollView>

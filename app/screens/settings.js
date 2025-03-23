@@ -400,14 +400,6 @@ const Settings = () => {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
-        <TouchableOpacity activeOpacity={0.8} onPress={handlePressTest}>
-          <FontAwesome name="microphone" size={40} />
-        </TouchableOpacity>
-        {audioUri && !loading && !recording && (
-          <TouchableOpacity onPress={handleTranscribe}>
-            <Text>Transcribe Audio</Text>
-          </TouchableOpacity>
-        )}
         <View style={styles.container}>
           <StatusBar style="auto" />
 
