@@ -83,6 +83,9 @@ const Main = () => {
     const flip = () => {
         setType(type == "front"? "back": "front" );
       };
+    const upload = () => {
+      router.push('/screens/camera/validate_photo')
+    }
 
   if (hasCameraPermissions === false) {
     return (
@@ -112,11 +115,12 @@ const Main = () => {
             style={styles.flip_btn}
             onPress={flip}
           >
-            <MaterialCommunityIcons name="camera-flip" size={40} color="#000" />
+            <MaterialCommunityIcons name="camera-flip" size={50} color="#000" />
           </TouchableOpacity>
         </CameraView>
       </View>
 
+      <View style={styles.btn_container}>
       <TouchableOpacity
         activeOpacity={0.8}
         style={styles.photo_btn}
@@ -124,6 +128,19 @@ const Main = () => {
       >
         <Text style={styles.btn_text}>TAKE PHOTO</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={styles.photo_btn}
+        onPress={upload}
+      >
+        <Text style={styles.btn_text}>UPLOAD</Text>
+      </TouchableOpacity>
+
+      </View>
+      
+
+
     </View>
     </SafeAreaView>
   );
@@ -144,6 +161,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
+    paddingBottom:50
   },
   header: {
     top: 0,
@@ -157,7 +175,6 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#D9D9D9",
     height: "60%",
-    marginBottom: 20,
     // alignItems:'center',
     // justifyContent:'center'
   },
@@ -172,7 +189,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 15,
     paddingVertical: 12,
-    marginBottom: 60,
+    marginBottom: 10,
     borderWidth: 1,
   },
   btn_text: {
@@ -183,4 +200,11 @@ const styles = StyleSheet.create({
   flip_btn: {
     paddingHorizontal: 8,
   },
+  btn_container: {
+    marginBottom:70,
+    width:'90%',
+    justifyContent:'space-between',
+    alignItems:'center',
+    gap:15
+}
 });

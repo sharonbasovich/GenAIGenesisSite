@@ -13,54 +13,59 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { useRouter, Stack } from "expo-router";
+import { app, db } from '../../firebaseConfig'
+import { getAuth, signOut } from 'firebase/auth'
+import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
 import Nav from "../../../components/Nav";
 
 const Home = () => {
   const col_num = 2;
   const router = useRouter()
-  const MENUS = [
-    {
-      id: "1",
-      uri: "Menu 1",
-    },
-    {
-      id: "2",
-      uri: "Menu 2",
-    },
-    {
-      id: "3",
-      uri: "Menu 3",
-    },
-    {
-      id: "4",
-      uri: "Menu 4",
-    },
-    {
-      id: "5",
-      uri: "Menu 5",
-    },
-    {
-      id: "6",
-      uri: "Menu 6",
-    },
-    {
-      id: "7",
-      uri: "Menu 7",
-    },
-    {
-      id: "8",
-      uri: "Menu 8",
-    },
-  ];
-  
-  const getData = async (key) => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch (e) {
-      // error reading value
-    }
-  };
+  const auth = getAuth(app)
+    //get the user data needed to be displayed in the profile
+    const email = auth.currentUser?.email
+    const [userInfo, setUserInfo] = useState({})
+
+    const fetchUserInfo = async (email) => {
+      try {
+          const userRef = collection(db, "users")
+          const userSnapShot = await getDocs(query(userRef, where("email", "==", email)))
+          const user = []
+          if(!userSnapShot.empty){
+            let images = []
+              userSnapShot.forEach((doc) => {
+                  images = doc.data().images || []
+              })
+              return images
+              //
+              //
+              //
+              //
+          } else {
+            return []
+          }
+      } catch(e){
+          console.log(`Error: ${e}`)
+      }
+  }
+
+  const images = fetchUserInfo(email)
+  console.log(`User has ${images.length} images`)
+
+  const image_list = []
+  for (let i=0; i< images.length;i++){
+    image_list.push({'uri':images[i],
+      "id":i
+    })
+  }
+  // const getData = async (key) => {
+  //   try {
+  //     const jsonValue = await AsyncStorage.getItem(key);
+  //     return jsonValue != null ? JSON.parse(jsonValue) : [];
+  //   } catch (e) {
+  //     // error reading value
+  //   }
+  // };
 
   const formatData = (data, numColumns) => {
     const num_full_rows = Math.floor(data.length / numColumns);
@@ -95,7 +100,7 @@ const Home = () => {
       <FlatList
         style={styles.menu_area}
         // data={formatData(MENUS, col_num)}
-        data={formatData(() => getData('uri_list'), col_num)}
+        data={formatData(() => image_list, col_num)}
         columnWrapperStyle={styles.row} // Centering and spacing between columns
         contentContainerStyle={styles.list} // Centering list in screen
         renderItem={({ item }) => {
@@ -110,7 +115,7 @@ const Home = () => {
                         {/* <Text style={styles.menu_title}>{item.uri}</Text> */}
                         <Image 
                           source={{uri: item.uri}}
-                          style={{ flex: 1, width: '100%', height: '100%' }}/>
+                          style={{ flex: 1, width: '100%', height: '100%', objectFit:'cover' }}/>
                     </View>
               </Pressable>
             </View>

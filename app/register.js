@@ -51,10 +51,8 @@ const App = () => {
               } else {
                 //create the new user in the firestore
                 const newDocRef = await addDoc(usersRef, {
-                  username: enteredUsername,
                   email: enteredEmail,
                   password: enteredPassword,
-                  avatar: ""
                 })
                 router.push('/')
               }  

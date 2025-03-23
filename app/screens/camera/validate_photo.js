@@ -8,20 +8,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
 import Entypo from 'react-native-vector-icons/Entypo'
 import * as FileSystem from 'expo-file-system';
-import { collection, addDoc } from "firebase/firestore";
 import * as ImagePicker from 'expo-image-picker';
+import { db, app } from "../../firebaseConfig";
+import { getAuth } from 'firebase/auth'
+import { collection, addDoc, updateDoc, getDocs, doc, query, where } from "firebase/firestore";
 
 
 const PhotoValidate = () => {
     const [uri, setUri] = useState(null)
     const router = useRouter()
+    
     const params = useLocalSearchParams();
     const [loading, setLoading] = useState(false);
-    const [image, setImage] = useState(null)
-    const API_URL = "http://166.104.146.34:5000"; // Replace X with your actual IP
+    const [imagePath, setImagePath] = useState(null)
+    const [summary, setSummary] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
+
     const cloudName = "denroue1s"
     const apiKey = "823362473226329"
     const api_secret = "txnFvA2ykk49ulrm2eW5Waae_tw"
+    const auth = getAuth(app)
+    //get the user data needed to be displayed in the profile
+    let email = auth.currentUser?.email
+    email = email.toLowerCase()
 
     useEffect(() => {
         if (params.image) {
@@ -33,7 +42,7 @@ const PhotoValidate = () => {
 
     const retake =() => {
         setUri(null)
-        setImage(null)
+        setImagePath(null)
         router.push('/screens/camera')
     }
 
@@ -55,13 +64,13 @@ const PhotoValidate = () => {
     const uploadImageToCloudinary = async (uri) => {
         console.log('cloudinary')
         console.log(uri)
-        const base64 = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64});
-        const blob = await fetch(`data:image/jpeg;base64,${base64}`).then(r => r.blob())
-        console.log(blob)
+        const response = await fetch(uri);
+        const blob = await response.blob();
+
         const formData = new FormData();
         formData.append("file", blob);
         formData.append("upload_preset", "ml_default");
-        formData.append("api_key", "823362473226329");
+        formData.append("api_key", apiKey);
 
         try {
             const cloudinaryResponse = await fetch(
@@ -81,6 +90,23 @@ const PhotoValidate = () => {
 
             //return data.secure_url; // Return the image URL from Cloudinary
             console.log(`cloud url: ${data.secure_url}`)
+            setImagePath(data.secure_url)
+            //add the url to firestore
+            const usersRef = collection(db, "users")
+            const emailSnapShot = await getDocs(query(usersRef, where("email", "==", email)))
+            if(emailSnapShot.empty){
+                        console.log(`An account with this email ${email} does not exist`)
+            } else {
+                //create the new user in the auth
+                const userDoc = emailSnapShot.docs[0];
+                const userDocRef = doc(db, "user", userDoc.id);
+
+                await updateDoc(userDocRef, {
+                    images: arrayUnion(data.secure_url),
+                  });
+                  console.log('added image')
+            }
+            
         } catch (error) {
             console.error("Cloudinary upload error:", error);
             // throw new Error(
@@ -90,91 +116,19 @@ const PhotoValidate = () => {
         }
     };
 
-    // const storeData = async (value) => {
-    //     try {
-    //       const jsonValue = JSON.stringify(value);
-    //       await AsyncStorage.setItem('uri_list', jsonValue);
-    //     } catch (e) {
-    //       console.log(`Error storing data: ${e}`)
-    //     }
-    //   };
-    
-
-    // const getData = async (key) => {
-    //     try {
-    //       const jsonValue = await AsyncStorage.getItem(key);
-    //       return jsonValue != null ? JSON.parse(jsonValue) : null;
-    //     } catch (e) {
-    //       console.log(`Error getting data: ${e}`)
-    //     }
-    //   };
-
-    // const upload = async (uri) => {
-    //     console.log('send image to server')
-    //     //store local uris
-    //     try{
-    //         // const data = await getData('uri_list')
-    //         // if (data && data.url_list){
-    //         //     console.log(`existing data ${data}`)
-    //         //     data.uri_list.push({
-    //         //         "uri": uri,
-    //         //         "id": uri.split('/').slice(-1)[0]
-    //         //     });
-    //         //     console.log(`We now have ${data.length} uris`)
-    //         //     await storeData({'uri_list':data})
-    
-    //         // } else {
-    //         //     console.log(`Adding new data: ${uri}`)
-    //         //     await storeData({
-    //         //         'uri_list': [{
-    //         //             "uri": uri,
-    //         //             "id": uri.split('/').slice(-1)[0]
-    //         //         }]
-    //         //     });
-    //         // }
-    //         //send URI to the server
-    //         const formData = new FormData()
-    //         formData.append('image', {
-    //             uri: uri,
-    //             name: uri.split('/').pop(),
-    //             type: 'image/jpeg'
-    //         })
-
-    //         const response = await fetch("http://166.104.146.34:5000/upload", {
-    //             method: 'POST',
-    //             body: formData,
-    //             // Important: Do not set the Content-Type header explicitly
-    //             // Let the browser set it with the correct boundary
-    //           });
-    //         if (!response.ok) {
-    //             const errorText = await response.text()
-    //             console.log(`Server error: ${errorText}`)
-    //         }
-
-    //         const result = await response.json()
-    //         if (result.image_path) {
-    //             setImagePath(result.image_path);
-    //             console.log(`set the image path: ${imagePath}`)
-    //         }
-    //     } catch(e){
-    //         console.log(`Exception: ${e}`)
-    //     } finally {
-    //         setLoading(false)
-    //     }
-    // 
 
     const content =  (
         <View style={styles.camera_area}>
         
-            {image ? (
+            {imagePath ? (
                 // <Image 
                 //     source={source(imagePath)}
                 //     style={{ flex: 1, width: '100%', height: '100%' }}
                 //     onError={(error) => console.log('Image loading error:', error)}
                 // />
-                <Image source={{ uri: image }}style={{ flex: 1, width: '100%', height: '100%' }} />
+                <Image source={{ uri: imagePath }}style={{ flex: 1, width: '100%', height: '100%' }} />
             ) : (
-                <Text>Upload an image</Text>
+                <Text style={{fontSize:30}}>Upload an image</Text>
             )}
         </View>
     )
@@ -242,10 +196,10 @@ const styles = StyleSheet.create({
     camera_area: {
         width:'100%',
         backgroundColor: '#D9D9D9',
-        height:'70%',
-        marginBottom:20,
+        height:'50%',
         alignItems:'center',
-        justifyContent:'center'
+        justifyContent:'center',
+        marginHorizontal:'auto'
     },
     image: {
         width:null,
@@ -265,8 +219,8 @@ const styles = StyleSheet.create({
     },
     btn_container: {
         flexDirection:'row',
-        marginBottom:30,
-        width:'50%',
+        marginBottom:70,
+        width:'70%',
         justifyContent:'space-between',
         alignItems:'center'
     }
