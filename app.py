@@ -25,7 +25,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 def home():
     return "Flask is running! Use /upload to upload images and /summarize to get the summary."
 
-# API to upload an image
 @app.route('/upload', methods=['POST', 'OPTIONS'])
 def upload_file():
     if request.method == 'OPTIONS':
@@ -33,34 +32,44 @@ def upload_file():
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
         response.headers.add('Access-Control-Allow-Methods', 'POST')
         return response
+
+    # Print complete request information
+    print("Request method:", request.method)
+    print("Content-Type:", request.headers.get('Content-Type', 'No Content-Type header'))
+    print("Request files:", request.files)
+    print("Request form:", request.form)
+    print("Request data:", request.data)
+    print("Is the request JSON?", request.is_json)
     
-    print("Request received:", request.files)  # Debug: print the files in the request
-    
+    # Check for files in the request
+    if not request.files:
+        return jsonify({"error": "No files found in request. Make sure you're sending a multipart/form-data request with a file"}), 400
+        
     if "image" not in request.files:
-        print("No image file found in request")  # Debug: log if image is missing
-        return jsonify({"error": "No image uploaded"}), 400
-    
+        # If there are files but not with key 'image', provide more detailed error
+        file_keys = list(request.files.keys())
+        return jsonify({
+            "error": "No image uploaded", 
+            "details": f"Found files with keys {file_keys}, but 'image' key is required"
+        }), 400
+
     image = request.files["image"]
-    
+
     if image.filename == '':
-        return jsonify({"error": "No selected file"}), 400
-    
+        return jsonify({"error": "File selected but has no filename"}), 400
+
     try:
-        # Ensure a secure filename
         from werkzeug.utils import secure_filename
         filename = secure_filename(image.filename)
-        
-        # Create the full path
         image_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        
-        # Save the file
+
+        print(f"Saving image to: {image_path}")
         image.save(image_path)
-        
-        # Return the full path for use in subsequent requests
-        return jsonify({"image_path": image_path})
+
+        return jsonify({"success": True, "image_path": image_path})
     except Exception as e:
-        print("Error saving file:", str(e))  # Debug: log any errors
-        return jsonify({"error": str(e)}), 500
+        print("Error saving file:", str(e))
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
     
 #-----------------------------------------------------------
 # API to summarize the menu using Gemini AI

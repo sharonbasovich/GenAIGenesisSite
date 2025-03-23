@@ -1,86 +1,245 @@
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
-  TextInput,
   Text,
   View,
   Pressable,
-  ActivityIndicator,
   TouchableOpacity,
+  ActivityIndicator,
+  Image,
 } from "react-native";
 import { useState } from "react";
-import { useRouter, Stack } from "expo-router";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Foundation from 'react-native-vector-icons/Foundation'
+import Foundation from "react-native-vector-icons/Foundation";
 import Nav from "../../../components/Nav";
+import * as ImagePicker from "expo-image-picker";
+
+const BACKEND_URL = "http://166.104.146.34:5000"; // 실제 백엔드 IP로 변경
 
 const SelectFeature = () => {
-  const router = useRouter()
-  const summary = () => {
-    console.log("pressed summary button");
-    router.push('/screens/home/summary_menu')
+  const router = useRouter();
+  const [outputText, setOutputText] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [uploadedImagePath, setUploadedImagePath] = useState("");
+
+  // asset 객체에서 파일명과 MIME 타입을 동적으로 추출하는 함수
+  const getImageFileInfo = (asset) => {
+    if (!asset || !asset.uri) {
+      throw new Error("선택된 이미지의 정보가 올바르지 않습니다.");
+    }
+    const { uri } = asset;
+    let { fileName } = asset;
+    if (!fileName) {
+      const uriParts = uri.split("/");
+      fileName = uriParts.length > 0 ? uriParts[uriParts.length - 1] : `photo.jpg`;
+    }
+    const parts = fileName.split(".");
+    const ext = parts.length > 1 ? parts.pop().toLowerCase() : "jpg";
+    let mimeType = "image/jpeg";
+    if (ext === "png") {
+      mimeType = "image/png";
+    } else if (ext === "jpg" || ext === "jpeg") {
+      mimeType = "image/jpeg";
+    }
+    return { fileName, mimeType };
   };
-  const suggestion = () => {
-    console.log("pressed suggestion button");
-    router.push('/screens/home/suggestions_menu')
+
+  // 이미지 업로드만 수행하는 함수
+  const uploadImage = async (asset) => {
+    try {
+      setLoading(true);
+      const { uri } = asset;
+      const { fileName, mimeType } = getImageFileInfo(asset);
+      const formData = new FormData();
+
+      if (uri.startsWith("data:")) {
+        const res = await fetch(uri);
+        const blob = await res.blob();
+        formData.append("image", blob, fileName);
+      } else {
+        formData.append("image", {
+          uri,
+          type: mimeType,
+          name: fileName,
+        });
+      }
+
+      // 이미지 업로드 호출
+      const uploadResponse = await fetch(`${BACKEND_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const uploadResult = await uploadResponse.json();
+      console.log("업로드 응답:", uploadResult);
+
+      if (uploadResult.image_path) {
+        setUploadedImagePath(uploadResult.image_path);
+      } else {
+        setOutputText("Error: Image upload failed.");
+      }
+    } catch (error) {
+      console.error("이미지 업로드 에러:", error);
+      setOutputText("Error uploading image: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // 업로드된 이미지 경로를 이용해 특정 백엔드 엔드포인트를 호출하는 함수  
+  // globalKey: 결과를 저장할 전역 변수 이름, endpoint: 호출할 백엔드 엔드포인트
+  const fetchResult = async (endpoint, globalKey) => {
+    if (!uploadedImagePath) {
+      alert("No image uploaded. Please upload an image first.");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await fetch(`${BACKEND_URL}/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image_path: uploadedImagePath }),
+      });
+      const result = await response.json();
+      console.log(`${endpoint} 응답:`, result);
+      let resultText = "";
+      if (endpoint === "summarize") {
+        resultText = result.summary || "No summary available.";
+      } else if (endpoint === "simple_menu") {
+        resultText = result.simple_menu || "No summary available.";
+      } else if (endpoint === "recommendation") {
+        resultText = result.recommendation || "No recommendation available.";
+      }
+      setOutputText(resultText);
+      // 전역 변수에 결과 저장 (각 페이지에서 이 값을 읽어 출력)
+      global[globalKey] = {
+        output: resultText,
+        image: selectedImage,
+      };
+      // 해당 페이지로 이동 (AccessibleMenu, SummaryMenu, RecommendationMenu)
+      console.log('globalkey', globalKey)
+      router.push({
+        pathname: `/screens/home/${globalKey}`,
+        params: { timestamp: new Date().getTime() },
+      });
+    } catch (error) {
+      console.error(`${endpoint} 호출 에러:`, error);
+      setOutputText(`Error fetching ${endpoint}: ` + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+  // 이미지 선택 함수 (업로드만 수행)
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true, // data URL 반환
+    });
+    console.log("picker result:", result);
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      console.log("선택된 asset:", asset);
+      setSelectedImage(asset.uri);
+      await uploadImage(asset);
+    } else {
+      console.log("이미지 선택이 취소되었습니다.");
+    }
+  };
+
+  // 버튼 함수들
+
   const accesible = () => {
-    console.log("pressed accesible button");
-    router.push('/screens/home/accesible_menu')
+    console.log("ACCESSIBLE MENU 버튼 클릭됨");
+    if (!uploadedImagePath) {
+      alert("Please upload an image first.");
+      return;
+    }
+    // accessible: /summarize 엔드포인트 사용, 결과 저장은 global.menuData
+    fetchResult("simple_menu", "menuData");
   };
+
+  const summary = () => {
+    console.log("SUMMARY 버튼 클릭됨");
+    if (!uploadedImagePath) {
+      alert("Please upload an image first.");
+      return;
+    }
+    // summary: /simple_menu 엔드포인트 사용, 결과 저장은 global.summaryData
+    fetchResult("summarize", "summaryData");
+  };
+
+  const recommendation = () => {
+    console.log("RECOMMENDATION 버튼 클릭됨");
+    if (!uploadedImagePath) {
+      alert("Please upload an image first.");
+      return;
+    }
+    // recommendation: /recommendation 엔드포인트 사용, 결과 저장은 global.recommendationData
+    fetchResult("recommendation", "recommendationData");
+  };
+
   const backToMenu = () => {
-    console.log('back to menu')
-    router.push('/screens/home/')
-  }
+    console.log("back to menu");
+    router.push("/screens/home/");
+  };
+
   return (
-    <SafeAreaView style={{flex:1}}>
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-
-      <View style={styles.header}>
-        <Nav />
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.header}>
+          <Nav />
+        </View>
+        <View style={{ width: "100%", height: 40, paddingHorizontal: 15 }}>
+          <Pressable onPress={backToMenu}>
+            <Foundation name="arrow-left" size={50} />
+          </Pressable>
+        </View>
+        <View style={styles.menu_display}>
+          <View style={styles.menu}></View>
+          {selectedImage && (
+            <Image source={{ uri: selectedImage }} style={styles.previewImage} />
+          )}
+        </View>
+        <View style={styles.button_container}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.photo_btn}
+            onPress={pickImage}
+          >
+            <Text style={styles.btn_text}>UPLOAD IMAGE</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.photo_btn}
+            onPress={accesible}
+          >
+            <Text style={styles.btn_text}>ACCESSIBLE{"\n"}MENU</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.photo_btn}
+            onPress={summary}
+          >
+            <Text style={styles.btn_text}>SUMMARY</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.photo_btn}
+            onPress={recommendation}
+          >
+            <Text style={styles.btn_text}>RECOMMENDATION</Text>
+          </TouchableOpacity>
+        </View>
+        {loading && <ActivityIndicator size="large" color="#54F2D6" />}
       </View>
-      <View style={{width:'100%',height:40, paddingHorizontal:15}}>
-        <Pressable onPress={backToMenu}>
-        <Foundation name="arrow-left" size={50}/>
-
-        </Pressable>
-      </View>
-
-      <View style={styles.menu_display}>
-        <View style={styles.menu}></View>
-      </View>
-
-      <View style={styles.button_container}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.photo_btn}
-          onPress={accesible}
-        >
-          <Text style={styles.btn_text}>
-            ACCESSIBLE
-            {"\n"}
-            MENU
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.photo_btn}
-          onPress={summary}
-        >
-          <Text style={styles.btn_text}>SUMMARY</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.photo_btn}
-          onPress={suggestion}
-        >
-          <Text style={styles.btn_text}>SUGGESTION</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
     </SafeAreaView>
   );
 };
@@ -88,12 +247,6 @@ const SelectFeature = () => {
 export default SelectFeature;
 
 const styles = StyleSheet.create({
-  title: {
-    color: "#ff5733",
-    fontSize: 30,
-    fontWeight: 600,
-    marginTop: 150,
-  },
   container: {
     flex: 1,
     backgroundColor: "#fff",
@@ -117,15 +270,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  menu: {
+    width: "100%",
+    height: "100%",
+  },
+  previewImage: {
+    width: 200,
+    height: 200,
+    resizeMode: "contain",
+    marginTop: 10,
+  },
   button_container: {
     alignItems: "center",
     justifyContent: "center",
     width: "100%",
     height: "25%",
-    // borderWidth:1,
     marginBottom: 40,
     maxHeight: 200,
-    gap:20
+    gap: 20,
   },
   photo_btn: {
     backgroundColor: "#54F2D6",
@@ -139,7 +301,7 @@ const styles = StyleSheet.create({
   btn_text: {
     color: "#000000",
     fontSize: 19,
-    fontWeight: 800,
+    fontWeight: "800",
     textAlign: "center",
   },
 });
