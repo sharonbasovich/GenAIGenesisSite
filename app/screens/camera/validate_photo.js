@@ -55,25 +55,25 @@ const PhotoValidate = () => {
         console.log('send image to server')
         //store local uris
         try{
-            const data = await getData('uri_list')
-            if (data && data.url_list){
-                console.log(`existing data ${data}`)
-                data.uri_list.push({
-                    "uri": uri,
-                    "id": uri.split('/').slice(-1)[0]
-                });
-                console.log(`We now have ${data.length} uris`)
-                await storeData({'uri_list':data})
+            // const data = await getData('uri_list')
+            // if (data && data.url_list){
+            //     console.log(`existing data ${data}`)
+            //     data.uri_list.push({
+            //         "uri": uri,
+            //         "id": uri.split('/').slice(-1)[0]
+            //     });
+            //     console.log(`We now have ${data.length} uris`)
+            //     await storeData({'uri_list':data})
     
-            } else {
-                console.log(`Adding new data: ${uri}`)
-                await storeData({
-                    'uri_list': [{
-                        "uri": uri,
-                        "id": uri.split('/').slice(-1)[0]
-                    }]
-                });
-            }
+            // } else {
+            //     console.log(`Adding new data: ${uri}`)
+            //     await storeData({
+            //         'uri_list': [{
+            //             "uri": uri,
+            //             "id": uri.split('/').slice(-1)[0]
+            //         }]
+            //     });
+            // }
             //send URI to the server
             const formData = new FormData()
             formData.append('image', {
@@ -96,7 +96,7 @@ const PhotoValidate = () => {
             const result = await response.json()
             if (result.image_path) {
                 setImagePath(result.image_path);
-                console.log('set the image path')
+                console.log(`set the image path: ${imagePath}`)
             }
         } catch(e){
             console.log(`Exception: ${e}`)

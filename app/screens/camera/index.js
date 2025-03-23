@@ -37,9 +37,9 @@ const Main = () => {
       try {
         const data = await cameraRef.current?.takePictureAsync();
         console.log(data);
-        setImage(data.uri);
 
         if(data && data.uri){
+            setImage(data.uri);
             console.log(`Image: ${data.uri}`)
             router.push({ pathname: `screens/camera/validate_photo`, params: { image: data.uri } });
         }
