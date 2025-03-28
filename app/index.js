@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router' 
 import { app } from './firebaseConfig'
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { SafeAreaView } from "react-native-safe-area-context";
+
 
 const App = () => {
     const router = useRouter()
@@ -41,12 +43,16 @@ const App = () => {
     }
 
     return(
-        <View style={styles.container}>
+      <SafeAreaView style={{flex:1}}>
+           <View style={styles.container}>
             <StatusBar style="auto" />
-                <Image
+            <View style={styles.imagecontainer}>
+            <Image
                     source={require('../assets/MENU_MATE_2.png')}
-                    style={{width:'80%',marginHorizontal:'auto', marginTop:50}}
+                    style={{maxHeight:'100%',maxWidth:'100%',objectFit:'contain'}}
                 />
+            </View>
+                
 
                 {/* <TouchableOpacity activeOpacity={0.8} style={styles.start} onPress={navApp}>
                     <Text style={styles.btn_text}>GET STARTED</Text>
@@ -67,6 +73,8 @@ const App = () => {
        
              </View>
         </View>
+      </SafeAreaView>
+       
     )
 
 }
@@ -80,6 +88,11 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 16, 
+    },
+    imagecontainer: {
+      width:'70%',
+      marginTop:200,
+      maxHeight:'40%'
     },
     start: {
         backgroundColor:'#D9D9D9',
