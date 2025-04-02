@@ -20,6 +20,10 @@ import Entypo from 'react-native-vector-icons/Entypo'
 import Nav from "../../../components/Nav";
 import ImageCompress from "../../../components/ImageCompress";
 import ReadFile from "../../../components/ReadFile";
+import { auth, app, db } from "../../firebaseConfig"
+import { getAuth } from 'firebase/auth'
+import { getFirestore, collection, addDoc, query, arrayUnion } from 'firebase/firestore';
+
 
 const Main = () => {
   const [hasCameraPermissions, setHasCameraPermissions] = useState(false);
@@ -48,8 +52,10 @@ const Main = () => {
   }, []);
 
   useEffect(()=> {
-    console.log(`url: ${imageUrl}`)
-    setLoading(false)
+    if(imageUrl){
+      console.log(`url: ${imageUrl}`)
+      setLoading(false)
+    }
   },[imageUrl])
 
   const retake =() => {
@@ -57,8 +63,26 @@ const Main = () => {
     router.push('/screens/camera')
   }
 
-  const confirm = () => {
-    router.push('/screens/home/')
+  const confirm = async () => {
+    setLoading(true)
+    try {
+      const userRef = collection(db, "users")
+      const auth = getAuth(app)
+      const email = auth.currentUser?.email
+      const userSnapShot = await getDocs(query(userRef, where("email","==",email)))
+      const userDoc = userSnapShot.docs[0]; 
+      const userDocRef = doc(db, "users", userDoc.id); 
+
+      await updateDoc(userDocRef, {
+        images: arrayUnion(imageUrl)
+      });
+      setLoading(false)
+      if (!loading){
+        router.push('/screens/home/') 
+      } 
+    } catch(e) {
+      console.log(`Error adding URL to user document: ${e}`)
+    }
   }
 
 
@@ -172,7 +196,7 @@ const Main = () => {
 
         </CameraView>
         :
-        <Image source={{uri: imageUrl}} styles={styles.image}/>
+        <Image source={{uri: imageUrl}} styles={styles.image} resizeMode={'cover'}/>
         
       }
       </View>
@@ -251,7 +275,7 @@ const styles = StyleSheet.create({
     maxHeight: '100%',
     maxWidth: '100%',
     height: '100%',
-    objectFit: 'contain'
+    resizeMode: 'contain'
   },
   photo_btn: {
     backgroundColor: "#54F2D6",

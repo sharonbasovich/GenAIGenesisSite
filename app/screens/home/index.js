@@ -7,60 +7,57 @@ import {
   FlatList,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
   Pressable,
   Image
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, Stack } from "expo-router";
 import Nav from "../../../components/Nav";
+import { auth, app, db } from "../../firebaseConfig"
+import { getAuth } from 'firebase/auth'
+import { getFirestore, collection, addDoc, query, arrayUnion } from 'firebase/firestore';
 
 const Home = () => {
   const col_num = 2;
   const router = useRouter()
-  const MENUS = [
-    {
-      id: "1",
-      uri: "Menu 1",
-    },
-    {
-      id: "2",
-      uri: "Menu 2",
-    },
-    {
-      id: "3",
-      uri: "Menu 3",
-    },
-    {
-      id: "4",
-      uri: "Menu 4",
-    },
-    {
-      id: "5",
-      uri: "Menu 5",
-    },
-    {
-      id: "6",
-      uri: "Menu 6",
-    },
-    {
-      id: "7",
-      uri: "Menu 7",
-    },
-    {
-      id: "8",
-      uri: "Menu 8",
-    },
-  ];
-  
-  const getData = async (key) => {
-    try {
-      const jsonValue = await AsyncStorage.getItem(key);
-      return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch (e) {
-      // error reading value
+  const [loading, setLoading] = useState(false)
+  const [imageArray, setImageArray] = useState([])
+
+  const auth = getAuth(app)
+  const email = auth.currentUser?.email
+
+  useEffect(()=> {
+    if(imageArray){
+      console.log(`url: ${imageArray}`)
+      setLoading(false)
     }
-  };
+  },[imageArray])
+  
+  const setImageData = async () => {
+    try{
+      const userRef = collection(db, "users")
+      const userSnapShot = await getDocs(query(userRef, where("email","==",email)))
+      const user = []
+      if(!userSnapShot.empty){
+        user.push({"url array":userSnapShot[0].doc.data().images})
+        const url_array = []
+        for(i=0;i<user[0]["url array"].length;i++){
+          url_array.push(
+            {
+              id:`${i}`,
+              uri:user[0]["url array"][i]
+            }
+          )
+        }
+        setImageArray(url_array)
+      }
+    } catch(e){
+      console.log(`Error: ${e}`)
+    }
+    
+  }
 
   const formatData = (data, numColumns) => {
     const num_full_rows = Math.floor(data.length / numColumns);
@@ -76,9 +73,9 @@ const Home = () => {
     return data;
   };
 
-  const open_selection =() => {
+  const open_selection =(uri) => {
     console.log('open selection')
-    router.push('/screens/home/select_feature')
+    router.push({pathname: '/screens/home/select_feature', params: {uri}})
   }
 
   return (
@@ -91,11 +88,17 @@ const Home = () => {
       </View>
 
       <Text style={styles.title}>YOUR MENUS</Text>
-
-      <FlatList
+      <View style={styles.menu_container}>
+        {loading?
+        
+          <ActivityIndicator size={"large"}/>      
+        
+        
+        :
+        <FlatList
         style={styles.menu_area}
         // data={formatData(MENUS, col_num)}
-        data={formatData(() => getData('uri_list'), col_num)}
+        data={formatData(() => imageArray, col_num)}
         columnWrapperStyle={styles.row} // Centering and spacing between columns
         contentContainerStyle={styles.list} // Centering list in screen
         renderItem={({ item }) => {
@@ -105,12 +108,12 @@ const Home = () => {
           console.log(item.id);
           return (
             <View style={styles.card} key={item.id}>
-                <Pressable onPress={open_selection} style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
+                <Pressable onPress={open_selection(item.uri)} style={{width:'100%', height:'100%',justifyContent:'center',alignItems:'center'}}>
                     <View>
                         {/* <Text style={styles.menu_title}>{item.uri}</Text> */}
                         <Image 
                           source={{uri: item.uri}}
-                          style={{ flex: 1, width: '100%', height: '100%' }}/>
+                          style={{ flex: 1, width: '100%', height: '100%', resizeMode: 'cover' }}/>
                     </View>
               </Pressable>
             </View>
@@ -118,6 +121,9 @@ const Home = () => {
         }}
         numColumns={col_num}
       />
+        }
+      </View>
+      
     </View>
     </SafeAreaView>
   );
@@ -148,6 +154,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
+  },
+  menu_container: {
+    width:'100%',
+    height:'90%',
+    borderWidth:1,
+    justifyContent:'center',
+    alignItems:'center'
   },
   header: {
     top: 0,

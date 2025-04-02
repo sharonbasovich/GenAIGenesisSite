@@ -92,7 +92,9 @@ const styles = StyleSheet.create({
     imagecontainer: {
       width:'70%',
       marginTop:200,
-      maxHeight:'40%'
+      maxHeight:'40%',
+      justifyContent:'center',
+      alignItems:'center'
     },
     start: {
         backgroundColor:'#D9D9D9',

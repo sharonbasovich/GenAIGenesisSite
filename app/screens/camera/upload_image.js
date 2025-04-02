@@ -128,7 +128,7 @@ const UploadImage = () => {
                 : !cloudImage ? 
                     <Text>Upload Image Here</Text>
                 :
-                    <Image source={{uri: cloudImage}} style={styles.image}/>
+                    <Image source={{uri: cloudImage}} style={styles.image} resizeMode={'cover'}/>
 
                 }
             </View>
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
         maxHeight: '100%',
         maxWidth: '100%',
         height: '100%',
-        objectFit: 'contain'
+        resizeMode: 'contain'
       },
       btn_text: {
         color: "#000000",
