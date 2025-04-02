@@ -11,6 +11,9 @@ import * as FileSystem from 'expo-file-system';
 import { collection, addDoc } from "firebase/firestore";
 import * as ImagePicker from 'expo-image-picker';
 import { setLogLevel } from "firebase/app";
+import { auth, app, db } from "../../firebaseConfig"
+import { getAuth } from 'firebase/auth'
+import { getFirestore, collection, addDoc, query, arrayUnion } from 'firebase/firestore';
 
 
 const UploadImage = () => {
@@ -28,8 +31,26 @@ const UploadImage = () => {
         setCloudImage(null)
         setLoading(false)
     }
-    const confirm = () => {
-        router.push('/screens/home/')
+    const confirm = async () => {
+        setLoading(true)
+        try {
+        const userRef = collection(db, "users")
+        const auth = getAuth(app)
+        const email = auth.currentUser?.email
+        const userSnapShot = await getDocs(query(userRef, where("email","==",email)))
+        const userDoc = userSnapShot.docs[0]; 
+        const userDocRef = doc(db, "users", userDoc.id); 
+
+        await updateDoc(userDocRef, {
+            images: arrayUnion(imageUrl)
+        });
+        setLoading(false)
+        if (!loading){
+            router.push('/screens/home/') 
+        } 
+        } catch(e) {
+        console.log(`Error adding URL to user document: ${e}`)
+        }
       }
     useEffect(()=> {
         if(image != null){
